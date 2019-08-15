@@ -77,7 +77,11 @@ export class EditSequence extends React.Component {
 
     getImageData(imageId, onSuccess, onFail){
 
-      let endpoint = "/edit_image/" + imageId;
+      var cats=[];
+      for(var i in this.props.categories)
+        cats.push(categories[i]['id']);
+
+      let endpoint = "/edit_image/" + imageId + '?cat_filter=' + cats.join(',');
 
       $.ajax({
         url : endpoint,

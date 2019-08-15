@@ -47,6 +47,11 @@ def edit_image(image_id):
   annotations = list(mongo.db.annotation.find({'image_id' : image_id}))
   categories = list(mongo.db.category.find())
 
+  if 'cat_filter' in request.args:
+    cat_filter = request.args['cat_filter'].split(',')
+    categories = [c for c in categories if c['id'] in cat_filter]
+    annotations = [a for a in annotations if a['category_id'] in cat_filter]
+
   image = json_util.dumps(image)
   annotations = json_util.dumps(annotations)
   categories = json_util.dumps(categories)
@@ -102,6 +107,9 @@ def edit_task():
         random.shuffle(image_ids)
 
   categories = list(mongo.db.category.find(projection={'_id' : False}))
+  if 'cat_filter' in request.args:
+    cat_filter = request.args['cat_filter'].split(',')
+    categories = [c for c in categories if c['id'] in cat_filter]
 
   return render_template('edit_task.html',
     task_id=1,
