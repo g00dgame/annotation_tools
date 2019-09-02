@@ -156,26 +156,26 @@ export class TaskSequence extends React.Component {
       var buttons = []
       if(this.state.imageIndex > 0){
         buttons.push(
-          (<button key="prevButton" type="button" className="btn btn-outline-secondary" onClick={this.prevImage}>Prev</button>)
+          (<button key="prevButton" type="button" className="btn btn-outline-secondary" onClick={this.prevImage}>Предыдущее</button>)
         );
       }
       if(this.state.imageIndex < num_images - 1){
         buttons.push(
-          (<button key="nextButton" type="button" className="btn btn-outline-secondary" onClick={this.nextImage}>Next</button>)
+          (<button key="nextButton" type="button" className="btn btn-outline-secondary" onClick={this.nextImage}>Следующее</button>)
         );
       }
       if(this.state.imageIndex == num_images - 1){
         buttons.push(
-          (<button key="finishButton" type="button" className="btn btn-outline-success" onClick={this.finish}>Finish</button>)
+          (<button key="finishButton" type="button" className="btn btn-outline-success" onClick={this.finish}>Конец</button>)
         );
       }
 
       var modalButtons = [];
       if (this.props.taskInstructionModalId != null){
-        modalButtons.push(<button key="helpModal" type="button" className="btn btn-outline-primary" data-toggle="modal" data-target={"#" + this.props.taskInstructionModalId}>Help</button>);
+        modalButtons.push(<button key="helpModal" type="button" className="btn btn-outline-primary" data-toggle="modal" data-target={"#" + this.props.taskInstructionModalId}>Помощь</button>);
       }
       if (this.props.taskHotKeysModalId != null){
-        modalButtons.push(<button key="hotKeysModal" type="button" className="btn btn-outline-primary" data-toggle="modal" data-target={"#" + this.props.taskHotKeysModalId}>Hot Keys</button>);
+        modalButtons.push(<button key="hotKeysModal" type="button" className="btn btn-outline-primary" data-toggle="modal" data-target={"#" + this.props.taskHotKeysModalId}>Горячие клавиши</button>);
       }
 
       return (
@@ -196,7 +196,7 @@ export class TaskSequence extends React.Component {
                 <div className="btn-group" role="group">
                   {buttons}
                 </div>
-                  <span> Image {current_image} / {num_images} </span>
+                  <span> Изображение {current_image} / {num_images} </span>
             </div>
             <div className="ml-auto">
                 {modalButtons}

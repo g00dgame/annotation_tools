@@ -7,7 +7,6 @@ import {FullEditView} from './full_edit.js'
  * Edit a single Image
  */
 export let editImage = function(editData){
-
     ReactDOM.render(
         <FullEditView image={editData.image}
                       annotations={editData.annotations}

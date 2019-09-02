@@ -52,7 +52,7 @@ class BBoxInstance extends React.Component {
     // Are we hidden?
     var hiddenBadge = "";
     if(this.props.hidden){
-      hiddenBadge = <span className="badge badge-secondary mr-1">Hidden</span>;
+      hiddenBadge = <span className="badge badge-secondary mr-1">Скрытый</span>;
     }
     //<span className="badge mr-1" style={{backgroundColor: annotation_color}}>&#9634;</span>
     return (
@@ -67,7 +67,7 @@ class BBoxInstance extends React.Component {
             </div>
             <div className="p-2">
               {hiddenBadge}
-              <button type="button" className="btn btn-sm btn-danger" onClick={this.deleteRequested}>Delete</button>
+              <button type="button" className="btn btn-sm btn-danger" onClick={this.deleteRequested}>Удалить</button>
             </div>
           </div>
         </div>
@@ -959,10 +959,10 @@ export class BBoxAnnotation extends React.Component {
         // Decide whether the "new box" button should be "cancel box" or not
         var newBoxEl;
         if(this.state.annotating){
-          newBoxEl = <button type="button" className="btn btn-outline-primary" onClick={this.cancelBBoxAnnotation}>Cancel New Box</button>;
+          newBoxEl = <button type="button" className="btn btn-outline-primary" onClick={this.cancelBBoxAnnotation}>Отменить новое поле</button>;
         }
         else{
-          newBoxEl = <button type="button" className="btn btn-outline-primary" onClick={this.createNewInstance}>New Box</button>;
+          newBoxEl = <button type="button" className="btn btn-outline-primary" onClick={this.createNewInstance}>Новое поле</button>;
         }
 
 
@@ -971,7 +971,7 @@ export class BBoxAnnotation extends React.Component {
         if(this.state.annotating){
           instructionsEl = (
             <div className="alert alert-success">
-              <h4>Click and drag a box on the image.</h4>
+              <h4>Нажмите и перетащите поле на изображение.</h4>
             </div>
           );
         }
@@ -988,14 +988,14 @@ export class BBoxAnnotation extends React.Component {
           if(num_annotations > 0){
             instructionsEl = (
               <div className="alert alert-info">
-                <h4>Edit boxes.</h4>
+                <h4>Изменить поле.</h4>
               </div>
             );
           }
           else{
             instructionsEl = (
               <div className="alert alert-info">
-                <h4>Click 'New Box' to draw a box.</h4>
+                <h4>Нажмите 'Новое поле', чтобы нарисовать поле.</h4>
               </div>
             );
           }
@@ -1003,7 +1003,7 @@ export class BBoxAnnotation extends React.Component {
         else{
           instructionsEl = (
             <div className="alert alert-warning">
-              <h4>View mode only.</h4>
+              <h4>Режим просмотра.</h4>
             </div>
           );
         }
@@ -1050,7 +1050,7 @@ export class BBoxAnnotation extends React.Component {
                         category={category}
                         keypoints={annotation.keypoints}
                         handleKeypointVisibilityChange={ this.handleKeypointVisibilityChange }
-                        handleDelete={ this.handleAnnotationDelete }
+                        handleDelete={this.handleAnnotationDelete}
                         handleFocus={this.handleAnnotationFocus}
                         handleAnnotateKeypoints={this.handleAnnotateKeypoints}
                         handleHideOthers={this.hideOtherAnnotations}
@@ -1069,10 +1069,10 @@ export class BBoxAnnotation extends React.Component {
                 </div>
                 <div className="row">
                   <div className="col">
-                    <span> Image ID: {image_id}</span>
+                    <span>Идентификатор изображения: {image_id}</span>
                   </div>
                   <div className="col">
-                    <span> Rights holder: {rights_holder}</span>
+                    <span>Правообладатель: {rights_holder}</span>
                   </div>
                 </div>
               </div>
@@ -1090,8 +1090,8 @@ export class BBoxAnnotation extends React.Component {
                       </div>
                       <div className="p-2">
                         <div className="btn-group" role="group">
-                          <button type="button" className="btn btn-outline-secondary" onClick={this.hideAllAnnotations}>Hide All</button>
-                          <button type="button" className="btn btn-outline-secondary" onClick={this.showAllAnnotations}>Show All</button>
+                          <button type="button" className="btn btn-outline-secondary" onClick={this.hideAllAnnotations}>Скрыть все</button>
+                          <button type="button" className="btn btn-outline-secondary" onClick={this.showAllAnnotations}>Показать все</button>
                         </div>
                       </div>
                     </div>

@@ -156,7 +156,7 @@ export let bboxTask = function(taskId, taskData, categories, mturk, taskInstruct
       // Show finished page
       ReactDOM.render(
         (<div className="alert alert-danger" role="alert">
-          Finished, but there was a problem saving the results.
+          Завершено, но возникла проблема с сохранением результатов.
         </div>),
         document.getElementById('app')
       );

@@ -3,22 +3,26 @@ import React from 'react';
 /**
  * This renders a modal for category selection.
  */
-export class CategorySelectionModal extends React.Component {
+export class ChangeCategoryModal extends React.Component {
 
   constructor(props) {
     super(props);
-
     // want to add an index to the categories
     var data = [];
-    for(var i=0; i < this.props.categories.length; i++){
+    for(var i = 0; i < this.props.categories.length; i++){
       var cat = Object.assign({}, this.props.categories[i]);
       cat.idx = i;
       data.push(cat);
     }
 
+    let category = props.category;
+    let annotationIndex = props.annotationIndex;
+
     this.state = {
       data: data,
-      filteredData : data
+      filteredData : data,
+      category: category,
+      annotationIndex: annotationIndex
     };
 
     this.filterData = this.filterData.bind(this);
@@ -35,8 +39,17 @@ export class CategorySelectionModal extends React.Component {
   }
 
   onSelect(e){
-    let idx = parseInt(e.target.dataset.idx);
-    this.props.selected(idx);
+    let idx = parseInt(e.target.dataset.idx) + 1;
+    //let idx = parseInt(e.target.dataset.idx);
+    this.props.selected(idx, this.state.annotationIndex);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.category.name !== prevProps.category.name) {
+        this.setState({
+            category: this.props.category
+        });
+    }
   }
 
   filterData(e){
@@ -45,14 +58,15 @@ export class CategorySelectionModal extends React.Component {
     let filtered = this.state.data.filter((category) => {
       return category.name.search(regex) > -1;
     });
+
     this.setState({
       filteredData : filtered
     });
   }
 
   render(){
-
     let filteredCategories = this.state.filteredData;
+    let category = this.state.category;
 
     var categoryEls = [];
     for(var i = 0; i < filteredCategories.length; i++){
@@ -67,11 +81,11 @@ export class CategorySelectionModal extends React.Component {
     return (
       <div>
         <div className="modal-header">
-          <h5 className="modal-title" id="categorySelectionModalLabel">Выбор категории</h5>
+          <h5 className="modal-title" id="categoryChangeModalLabel">Изменить категорию</h5>
         </div>
         <div className="modal-body">
-          <input ref={(input) => {this.filterInput = input;}} type='text' onChange={this.filterData}></input>
-          <ul id="categorySelectionModalCategoryList">{categoryEls}</ul>
+          <input ref={(input) => {this.filterInput = input;}} type='text' value={category.name} onChange={this.filterData}></input>
+          <ul id="categoryChangeModalCategoryList">{categoryEls}</ul>
         </div>
         <div className="modal-footer">
           <button type="button" className="btn btn-secondary" onClick={this.onCancel}>Отмена</button>
@@ -79,5 +93,4 @@ export class CategorySelectionModal extends React.Component {
       </div>
     );
   }
-
 }

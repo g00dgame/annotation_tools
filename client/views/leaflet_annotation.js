@@ -10,6 +10,7 @@ import {COLORS} from '../utils.js';
 import {Annotation} from './annotation.js';
 import {DefaultEditInstructions, KeypointInstructions, BBoxInstructions} from './instructions.js';
 import {CategorySelectionModal} from './category_selection_modal.js';
+import {ChangeCategoryModal} from './change_category_modal';
 
 // From SO: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
 // When we create a new annotation, we want to assign an `id` to it. We'll use this
@@ -43,11 +44,8 @@ let ColorableDivIcon = L.DivIcon.extend({
     if (this.background != 'undefined' && this.background != null){
       div.style.background = this.background;
     }
-
     return div;
-
   }
-
 });
 
 
@@ -93,6 +91,7 @@ export class LeafletAnnotation extends React.Component {
         this.handleKeypointVisibilityChange = this.handleKeypointVisibilityChange.bind(this);
         this.createNewInstance = this.createNewInstance.bind(this);
         this.handleAnnotationDelete = this.handleAnnotationDelete.bind(this);
+        this.handleAnnotationChangeCat = this.handleAnnotationChangeCat.bind(this);
         this.handleSave = this.handleSave.bind(this);
         this.checkKeypointAnnotationQueue = this.checkKeypointAnnotationQueue.bind(this);
         this.handleAnnotationFocus = this.handleAnnotationFocus.bind(this);
@@ -106,6 +105,7 @@ export class LeafletAnnotation extends React.Component {
 
         this.categorySelection = this.categorySelection.bind(this);
         this.categorySelectionCancelled = this.categorySelectionCancelled.bind(this);
+        this.categoryChange = this.categoryChange.bind(this);
 
     }
 
@@ -859,14 +859,12 @@ export class LeafletAnnotation extends React.Component {
       this.setState({
         'annotating' : true,
       });
-
     }
 
     /**
      * Allow the user to annotate a new instance with a bbox.
      */
     createNewInstance() {
-
       if(this.state.annotating){
         // ignore, the user needs to finish their annotation.
         // Maybe we can flash a message
@@ -874,7 +872,6 @@ export class LeafletAnnotation extends React.Component {
       }
 
       // if there is only one category, then this is real easy.
-      var category;
       if (this.props.categories.length == 1){
         this.addNewInstance(0);
       }
@@ -894,11 +891,7 @@ export class LeafletAnnotation extends React.Component {
         $('#categorySelectionModal').off('shown.bs.modal'); // we don't want to keep tacking on events
         $('#categorySelectionModal').on('shown.bs.modal', ()=>{this.categorySelectionModalEl.shown();});
         $('#categorySelectionModal').modal('show');
-
       }
-
-
-
     }
 
     /**
@@ -938,13 +931,85 @@ export class LeafletAnnotation extends React.Component {
      * @param {*} layer
      */
     removeLayer(layer){
-
       if(layer != 'undefined' && layer != null){
         if(this.annotationFeatures.hasLayer(layer)){
           this.annotationFeatures.removeLayer(layer);
         }
       }
+    }
 
+    categoryChange(category, annotationIndex){
+      $('#categorySelectionModal').modal('hide');
+      this.categorySelectionModalEl = null;
+      this.changeInstance(category, annotationIndex);
+      this.enableHotKeys();
+    }
+
+    /**
+     *
+     * @param {*} category
+     * @param {*} annotation_id
+     */
+    changeInstance(idx, annotation_id){
+      //let category = this.props.categories[category_idx];
+      console.log(annotation_id);
+
+      let annotation = this.state.annotations[annotation_id];
+
+      annotation.category_id = idx;
+
+      
+      // // Draw a box
+      // let annotation_layer = this.annotation_layers[annotation_id];
+
+      // // Remove the bbox.
+      // if(annotation_layer.bbox != 'undefined' && annotation_layer.bbox != null){
+      //   let layer = annotation_layer.bbox;
+      //   this.removeLayer(layer);
+      // }
+      //this.new_category_id = parseInt(category.id); // store the category that was selected.
+      //this.annotateBBox();
+      this.setState(function (prevState, props) {
+
+        var annotations = prevState.annotations;
+        // Mark the annotation as deleted. The server will delete it from the database
+        //annotations[annotation_id].deleted = true;
+
+        return {
+          'annotations': annotations
+        };
+      });
+    }
+
+    /**
+     * Change category name
+     * @param {*} category 
+     * @param {*} annotationIndex
+     */
+    handleAnnotationChangeCat(category, annotationIndex){
+      if(this.state.annotating){
+        // ignore, the user needs to finish their annotation.
+        // Maybe we can flash a message
+        return;
+      }
+
+      // if there is not only one category.
+      if (this.props.categories.length !== 1){
+        // Show a modal window and let the user select the category.
+        ReactDOM.render(
+          <ChangeCategoryModal ref={(el) => {this.categorySelectionModalEL = el; }} annotationIndex={annotationIndex} category={category} categories={this.props.categories} cancelled={this.categorySelectionCancelled}
+            selected={this.categoryChange}/>,
+          document.getElementById('categorySelectionModalContent')
+        );
+
+        // We don't want hot keys firing when the user is using the filter box
+        this.disableHotKeys();
+
+        // let the modal focus the input
+        $('#categorySelectionModal').off('shown.bs.modal'); // we don't want to keep tacking on events
+        $('#categorySelectionModal').on('shown.bs.modal', ()=>{this.categorySelectionModalEL.shown();});
+        $('#categorySelectionModal').modal('show');
+      }
     }
 
     /**
@@ -1190,7 +1255,6 @@ export class LeafletAnnotation extends React.Component {
      */
     handleAnnotationFocus(annotationIndex){
 
-
       let annotation = this.state.annotations[annotationIndex];
       let annotation_layer = this.annotation_layers[annotationIndex];
 
@@ -1316,7 +1380,6 @@ export class LeafletAnnotation extends React.Component {
 
       // Rerender
       this.setState(this.state);
-
     }
 
     /**
@@ -1422,6 +1485,7 @@ export class LeafletAnnotation extends React.Component {
                         keypoints={annotation.keypoints ? annotation.keypoints : []}
                         handleKeypointVisibilityChange={ this.handleKeypointVisibilityChange }
                         handleDelete={ this.handleAnnotationDelete }
+                        handleChangeCat={ this.handleAnnotationChangeCat }
                         handleFocus={this.handleAnnotationFocus}
                         handleAnnotateKeypoints={this.handleAnnotateKeypoints}
                         handleHideOthers={this.hideOtherAnnotations}
@@ -1440,26 +1504,26 @@ export class LeafletAnnotation extends React.Component {
                 </div>
                 <div className="row">
                   <div className="col">
-                    <span> Image ID: {image_id}</span>
+                    <span>Идентификатор изображения: {image_id}</span>
                   </div>
                   <div className="col">
-                    <span> Rights holder: {rights_holder}</span>
+                    <span>Правообладатель: {rights_holder}</span>
                   </div>
                 </div>
               </div>
               <div className="col-6">
                 <div className="d-flex justify-content-between">
                   <div className="p-2">
-                    <button type="button" className="btn btn-outline-primary" onClick={this.createNewInstance}>New</button>
+                    <button type="button" className="btn btn-outline-primary" onClick={this.createNewInstance}>Создать</button>
                   </div>
                   <div className="p-2">
                     <div className="btn-group" role="group">
-                      <button type="button" className="btn btn-outline-secondary" onClick={this.hideAllAnnotations}>Hide All</button>
-                      <button type="button" className="btn btn-outline-secondary" onClick={this.showAllAnnotations}>Show All</button>
+                      <button type="button" className="btn btn-outline-secondary" onClick={this.hideAllAnnotations}>Скрыть все</button>
+                      <button type="button" className="btn btn-outline-secondary" onClick={this.showAllAnnotations}>Показать все</button>
                     </div>
                   </div>
                   <div className="p-2">
-                    <button type="button" className="btn btn-outline-success" onClick={this.handleSave}>Save</button>
+                    <button type="button" className="btn btn-outline-success" onClick={this.handleSave}>Сохранить</button>
                   </div>
                 </div>
                 <div className="row">

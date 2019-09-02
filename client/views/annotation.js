@@ -12,6 +12,7 @@ export class Annotation extends React.Component {
       super(props);
 
       this.keypointVisibilityChanged = this.keypointVisibilityChanged.bind(this);
+      this.changeCatRequested = this.changeCatRequested.bind(this);
       this.deleteRequested = this.deleteRequested.bind(this);
       this.onMouseEnter = this.onMouseEnter.bind(this);
       this.onMouseLeave = this.onMouseLeave.bind(this);
@@ -28,6 +29,10 @@ export class Annotation extends React.Component {
 
   deleteRequested(){
     this.props.handleDelete(this.props.id);
+  }
+
+  changeCatRequested(){
+    this.props.handleChangeCat(this.props.category, this.props.id);
   }
 
   onMouseEnter(){
@@ -50,15 +55,15 @@ export class Annotation extends React.Component {
     this.props.handleHideOthers(this.props.id);
   }
 
-  render(){
 
+
+  render(){
     var num_na_keypoints = 0;
     var keypointItems = [];
     for (var j=0; j < this.props.keypoints.length / 3; j++){
-
       let keypoint_name = this.props.category.keypoints[j];
+      // console.log(keypoint_name);
       let keypoint_color = this.props.category.keypoints_style[j];
-
 
       let index = j * 3;
       let v = this.props.keypoints[index + 2];
@@ -77,16 +82,16 @@ export class Annotation extends React.Component {
 
     var na_keypoints_badge;
     if(num_na_keypoints > 0){
-      na_keypoints_badge = (<span className="badge badge-warning">{num_na_keypoints} N/A</span>)
+      na_keypoints_badge = (<span className="badge badge-warning">{num_na_keypoints} Н/Д</span>)
     }
     else{
-      na_keypoints_badge = (<span className="badge badge-success">{num_na_keypoints} N/A</span>)
+      na_keypoints_badge = (<span className="badge badge-success">{num_na_keypoints} Н/Д</span>)
     }
 
     // Are we hidden?
     var hiddenBadge = "";
     if(this.props.hidden){
-      hiddenBadge = <span className="badge badge-secondary mr-1">Hidden</span>;
+      hiddenBadge = <span className="badge badge-secondary mr-1">Скрытый</span>;
     }
 
     return (
@@ -106,14 +111,15 @@ export class Annotation extends React.Component {
             </div>
             <div className="p-2">
               <div className="btn-group" role="group">
-                <button type="button" className="btn btn-sm btn-outline-secondary" onClick={this.onFocus}>Focus</button>
-                <button type="button" className="btn btn-sm btn-outline-secondary" onClick={this.onAnnotateNA}>Annotate N/A</button>
-                <button type="button" className="btn btn-sm btn-outline-secondary" onClick={this.onHideOthers}>Hide Others</button>
+                <button type="button" className="btn btn-sm btn-outline-secondary" onClick={this.onFocus}>Фокус</button>
+                <button type="button" className="btn btn-sm btn-outline-secondary" onClick={this.onAnnotateNA}>Аннотировать Н/Д</button>
+                <button type="button" className="btn btn-sm btn-outline-secondary" onClick={this.onHideOthers}>Скрыть остальные</button>
               </div>
             </div>
             <div className="p-2">
               {hiddenBadge}
-              <button type="button" className="btn btn-sm btn-danger" onClick={this.deleteRequested}>Delete</button>
+              <button type="button" className="btn btn-sm btn-primary" onClick={this.changeCatRequested}>Изменить категорию</button>
+              <button type="button" className="btn btn-sm btn-danger" onClick={this.deleteRequested}>Удалить</button>
             </div>
           </div>
         </div>
@@ -125,9 +131,9 @@ export class Annotation extends React.Component {
                   <thead>
                     <tr>
                         <th className="w-50"></th>
-                        <th className="w-15">n/a</th>
-                        <th className="w-15">occluded</th>
-                        <th className="w-15">visible</th>
+                        <th className="w-15">н/д</th>
+                        <th className="w-15">закрытый</th>
+                        <th className="w-15">видимый</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -140,7 +146,5 @@ export class Annotation extends React.Component {
         </div>
       </div>
     );
-
   }
-
 }

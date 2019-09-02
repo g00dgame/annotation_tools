@@ -58,11 +58,11 @@ export class TaskInstructions extends React.Component {
           </div>
           <a className="carousel-control-prev" href={"#" + carouselId} role="button" data-slide="prev">
             <span className="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span className="sr-only">Previous</span>
+            <span className="sr-only">Предыдущее</span>
           </a>
           <a className="carousel-control-next" href={"#" + carouselId} role="button" data-slide="next">
             <span className="carousel-control-next-icon" aria-hidden="true"></span>
-            <span className="sr-only">Next</span>
+            <span className="sr-only">Следующее</span>
           </a>
         </div>
       );
@@ -85,7 +85,7 @@ export class TaskInstructions extends React.Component {
         </div>
         <div className="row">
           <div className="col">
-            <span>Detailed instructions can be found <a href={this.props.instructions} target="_blank">here</a>.</span>
+            <span>Подробные инструкции можно найти на <a href={this.props.instructions} target="_blank">здесь</a>.</span>
           </div>
         </div>
         <div className="row">
@@ -95,7 +95,7 @@ export class TaskInstructions extends React.Component {
         </div>
         <div className="row">
           <div className="col">
-            <button type="button" className="btn btn-primary btn-lg btn-block" onClick={this.handleStart}>Start</button>
+            <button type="button" className="btn btn-primary btn-lg btn-block" onClick={this.handleStart}>Старт</button>
           </div>
         </div>
       </div>
