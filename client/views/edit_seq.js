@@ -191,7 +191,7 @@ export class EditSequence extends React.Component {
 
       if(this.state.fetchingData){
         return (
-          <div> Loading Image </div>
+          <div> Загрузка изображения... </div>
         );
       }
 
@@ -203,17 +203,17 @@ export class EditSequence extends React.Component {
       var buttons = []
       if(this.state.imageIndex > 0){
         buttons.push(
-          (<button key="prevButton" type="button" className="btn btn-outline-secondary" onClick={this.prevImage}>Prev</button>)
+          (<button key="prevButton" type="button" className="btn btn-outline-secondary" onClick={this.prevImage}>Предыдущее</button>)
         );
       }
       if(this.state.imageIndex < num_images - 1){
         buttons.push(
-          (<button key="nextButton" type="button" className="btn btn-outline-secondary" onClick={this.nextImage}>Next</button>)
+          (<button key="nextButton" type="button" className="btn btn-outline-secondary" onClick={this.nextImage}>Следующее</button>)
         );
       }
       if(this.state.imageIndex == num_images - 1){
         buttons.push(
-          (<button key="finishButton" type="button" className="btn btn-outline-success" onClick={this.finish}>Finish</button>)
+          (<button key="finishButton" type="button" className="btn btn-outline-success" onClick={this.finish}>Конец</button>)
         );
       }
 
@@ -235,7 +235,7 @@ export class EditSequence extends React.Component {
                 <div className="btn-group" role="group">
                   {buttons}
                 </div>
-                  <span> Image {current_image} / {num_images} </span>
+                  <span> Изображение {current_image} / {num_images} </span>
             </div>
             <div className="ml-auto">
 

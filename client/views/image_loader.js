@@ -30,7 +30,7 @@ export class ImageLoader extends React.Component {
                     onLoad={this.onImageLoaded}
                     onError={this.onImageErrored}
                 />
-                Loading Image
+                Загрузка изображения...
             </div>
         )
 

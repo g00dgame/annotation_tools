@@ -34,7 +34,6 @@ export class FullEditView extends React.Component {
   performSave(onSuccess, onFail){
     if(this.leafletImage != 'undefined' && this.leafletImage != null){
       let imageData = this.leafletImage.getState();
-
       console.log("saving annotations");
       $.ajax({
         url : "/annotations/save",
@@ -92,5 +91,4 @@ export class FullEditView extends React.Component {
       );
     }
   }
-
 }

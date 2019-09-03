@@ -6,9 +6,9 @@ class DefaultEditInstructions extends React.Component {
     return (
       <div className="card card-outline-primary">
         <div className="card-block">
-          <h4 className="card-title">Free edit</h4>
-          <p className="card-text">Edit any annotations that need adjustment. Use the drag handles to modify boxes. Drag the markers to modify points. Use the visibility checkboxes to modify whether a component is visible or not.</p>
-          <p className="card-text">Press the `Save` button to save the annotations, or press the `s` key.</p>
+          <h4 className="card-title">Свободное редактирование</h4>
+          <p className="card-text">Отредактируйте любые аннотации, нуждающиеся в корректировке. Используйте курсор для изменения полей. Для изменения точек необходимо перетащить маркеры в области поля. Используйте опции, для активации или деактивации видимости компонента.</p>
+          <p className="card-text">Нажмите кнопку `Сохранить` для сохранения итоговых аннотаций, либо нажмите клавишу `s`.</p>
         </div>
       </div>
     );
@@ -21,9 +21,9 @@ class KeypointInstructions extends React.Component {
     return (
       <div className="card card-warning">
         <div className="card-block">
-          <h4 className="card-title">Click on the <span className="font-italic font-weight-bold">{this.props.name}</span></h4>
-          <p className="card-text">Press `v` to toggle the visibility. Press `esc` or change the visibility to n/a to cancel.</p>
-          <p className="card-text">Press the `Save` button to save the annotations, or press the `s` key.</p>
+          <h4 className="card-title">Нажмите на <span className="font-italic font-weight-bold">{this.props.name}</span></h4>
+          <p className="card-text">Нажмите клавишу `v` для переключения видимости. Нажмите клавишу `esc` для изменения видимости на н/д.</p>
+          <p className="card-text">Нажмите кнопку `Сохранить` для сохранения итоговых аннотаций, либо нажмите клавишу `s`.</p>
         </div>
       </div>
     );
@@ -37,9 +37,9 @@ class BBoxInstructions extends React.Component {
     return (
       <div className="card card-warning">
         <div className="card-block">
-          <h4 className="card-title">Click and drag a box around the <span className="font-italic font-weight-bold">{this.props.name}</span></h4>
-          <p className="card-text">Press `esc` to cancel.</p>
-          <p className="card-text">Press the `Save` button to save the annotations, or press the `s` key.</p>
+          <h4 className="card-title">Нажмите и перетащите поле <span className="font-italic font-weight-bold">{this.props.name}</span></h4>
+          <p className="card-text">Нажмите клавишу `esc` для отмены.</p>
+          <p className="card-text">Нажмите кнопку `Сохранить` для сохранения итоговых аннотаций, либо нажмите клавишу `s`.</p>
         </div>
       </div>
     );

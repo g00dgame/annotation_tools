@@ -21,7 +21,4 @@ export let editTask = function(taskId, imageIds, categories){
                   onFinish={onFinish}/>,
     document.getElementById('app')
   );
-
-
-
 }
