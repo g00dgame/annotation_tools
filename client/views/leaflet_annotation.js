@@ -947,34 +947,14 @@ export class LeafletAnnotation extends React.Component {
 
     /**
      *
-     * @param {*} category
+     * @param {*} idx
      * @param {*} annotation_id
      */
     changeInstance(idx, annotation_id){
-      //let category = this.props.categories[category_idx];
-      console.log(annotation_id);
-
       let annotation = this.state.annotations[annotation_id];
-
       annotation.category_id = idx;
-
-      
-      // // Draw a box
-      // let annotation_layer = this.annotation_layers[annotation_id];
-
-      // // Remove the bbox.
-      // if(annotation_layer.bbox != 'undefined' && annotation_layer.bbox != null){
-      //   let layer = annotation_layer.bbox;
-      //   this.removeLayer(layer);
-      // }
-      //this.new_category_id = parseInt(category.id); // store the category that was selected.
-      //this.annotateBBox();
       this.setState(function (prevState, props) {
-
         var annotations = prevState.annotations;
-        // Mark the annotation as deleted. The server will delete it from the database
-        //annotations[annotation_id].deleted = true;
-
         return {
           'annotations': annotations
         };
