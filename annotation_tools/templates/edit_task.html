@@ -1,3 +1,6 @@
+<div>
+  <h4>Category: {{categories_names}}</h4>
+</div>
 {% extends "layout.html" %}
 {% block title %}Edit Task{% endblock %}
 {% block head %}
@@ -42,5 +45,4 @@
   document.V.editTask(taskId, imageIds, categories);
 
 </script>
-
 {% endblock %}

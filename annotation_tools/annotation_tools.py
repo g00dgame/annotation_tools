@@ -47,6 +47,11 @@ def edit_image(image_id):
   annotations = list(mongo.db.annotation.find({'image_id' : image_id}))
   categories = list(mongo.db.category.find())
 
+  if 'cat_filter' in request.args:
+    cat_filter = request.args['cat_filter'].split(',')
+    categories = [c for c in categories if c['id'] in cat_filter]
+    annotations = [a for a in annotations if a['category_id'] in cat_filter]
+
   image = json_util.dumps(image)
   annotations = json_util.dumps(annotations)
   categories = json_util.dumps(categories)
@@ -60,7 +65,8 @@ def edit_image(image_id):
     })
   else:
     # Render a webpage to edit the annotations for this image
-    return render_template('edit_image.html', image=image, annotations=annotations, categories=categories)
+    return render_template('edit_image.html', image=image, annotations=annotations, categories=categories,
+                           categories_names=', '.join([c['name'] for c in categories]))
 
 @app.route('/edit_task/')
 def edit_task():
@@ -102,11 +108,15 @@ def edit_task():
         random.shuffle(image_ids)
 
   categories = list(mongo.db.category.find(projection={'_id' : False}))
+  if 'cat_filter' in request.args:
+    cat_filter = request.args['cat_filter'].split(',')
+    categories = [c for c in categories if c['id'] in cat_filter]
 
   return render_template('edit_task.html',
     task_id=1,
     image_ids=image_ids,
     categories=categories,
+    categories_names=', '.join([c['name'] for c in categories])
   )
 
 @app.route('/annotations/save', methods=['POST'])
@@ -174,7 +184,8 @@ def bbox_task(task_id):
     task_data=tasks,
     categories=categories,
     mturk=True,
-    task_instructions=task_instructions
+    task_instructions=task_instructions,
+    categories_names=', '.join([c['name'] for c in categories])
   )
 
 @app.route('/bbox_task/save', methods=['POST'])

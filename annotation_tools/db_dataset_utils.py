@@ -109,7 +109,7 @@ def load_dataset(db, dataset, normalize=False):
       response = db.category.insert_many(categories, ordered=False)
       print("Successfully inserted %d categories" % (len(response.inserted_ids),))
     except BulkWriteError as bwe:
-      panic = filter(lambda x: x['code'] != DUPLICATE_KEY_ERROR_CODE, bwe.details['writeErrors'])
+      panic = list(filter(lambda x: x['code'] != DUPLICATE_KEY_ERROR_CODE, bwe.details['writeErrors']))
       if len(panic) > 0:
         raise
       print("Attempted to insert duplicate categories, %d new categories inserted" % (bwe.details['nInserted'],))
@@ -140,7 +140,7 @@ def load_dataset(db, dataset, normalize=False):
       print("Successfully inserted %d images" % (len(response.inserted_ids),))
 
     except BulkWriteError as bwe:
-      panic = filter(lambda x: x['code'] != DUPLICATE_KEY_ERROR_CODE, bwe.details['writeErrors'])
+      panic = list(filter(lambda x: x['code'] != DUPLICATE_KEY_ERROR_CODE, bwe.details['writeErrors']))
       if len(panic) > 0:
         raise
       print("Attempted to insert duplicate images, %d new images inserted" % (bwe.details['nInserted'],))
@@ -175,7 +175,7 @@ def load_dataset(db, dataset, normalize=False):
       response = db.annotation.insert_many(annotations, ordered=False)
       print("Successfully inserted %d annotations" % (len(response.inserted_ids),))
     except BulkWriteError as bwe:
-      panic = filter(lambda x: x['code'] != DUPLICATE_KEY_ERROR_CODE, bwe.details['writeErrors'])
+      panic = list(filter(lambda x: x['code'] != DUPLICATE_KEY_ERROR_CODE, bwe.details['writeErrors']))
       if len(panic) > 0:
         raise
       print("Attempted to insert duplicate annotations, %d new annotations inserted" % (bwe.details['nInserted'],))
@@ -196,7 +196,7 @@ def load_dataset(db, dataset, normalize=False):
       response = db.license.insert_many(licenses, ordered=False)
       print("Successfully inserted %d licenses" % (len(response.inserted_ids),))
     except BulkWriteError as bwe:
-      panic = filter(lambda x: x['code'] != DUPLICATE_KEY_ERROR_CODE, bwe.details['writeErrors'])
+      panic = list(filter(lambda x: x['code'] != DUPLICATE_KEY_ERROR_CODE, bwe.details['writeErrors']))
       if len(panic) > 0:
         raise
       print("Attempted to insert duplicate licenses, %d new licenses inserted" % (bwe.details['nInserted'],))
