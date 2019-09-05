@@ -37,7 +37,8 @@ export class ChangeCategoryModal extends React.Component {
   }
 
   onSelect(e){
-    let idx = (parseInt(e.target.dataset.idx) + 1).toString();
+    let idx = this.props.categories[parseInt(e.target.dataset.idx)].id
+    // let idx = (parseInt(e.target.dataset.idx) + 1).toString();
     this.props.selected(idx, this.state.annotationIndex);
   }
 
