@@ -15,13 +15,11 @@ export class ChangeCategoryModal extends React.Component {
       data.push(cat);
     }
 
-    let category = props.category;
     let annotationIndex = props.annotationIndex;
 
     this.state = {
       data: data,
       filteredData : data,
-      category: category,
       annotationIndex: annotationIndex
     };
 
@@ -40,14 +38,13 @@ export class ChangeCategoryModal extends React.Component {
 
   onSelect(e){
     let idx = parseInt(e.target.dataset.idx) + 1;
-    //let idx = parseInt(e.target.dataset.idx);
     this.props.selected(idx, this.state.annotationIndex);
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.category.name !== prevProps.category.name) {
+    if (this.props.annotationIndex !== prevProps.annotationIndex) {
         this.setState({
-            category: this.props.category
+            annotationIndex: this.props.annotationIndex
         });
     }
   }
@@ -66,7 +63,7 @@ export class ChangeCategoryModal extends React.Component {
 
   render(){
     let filteredCategories = this.state.filteredData;
-    let category = this.state.category;
+    let category = this.props.category;
 
     var categoryEls = [];
     for(var i = 0; i < filteredCategories.length; i++){
