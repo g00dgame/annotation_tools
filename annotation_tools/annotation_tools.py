@@ -38,6 +38,14 @@ def home():
   return render_template('layout.html')
 
 
+def render_categories_names(categories):
+  if len(categories) > 3:
+    categories = categories[:3]
+    return ', '.join([c['name'] for c in categories]) + ' ...'
+
+  return ', '.join([c['name'] for c in categories])
+
+
 @app.route('/edit_image/<image_id>')
 def edit_image(image_id):
   """ Edit a single image.
@@ -66,7 +74,7 @@ def edit_image(image_id):
   else:
     # Render a webpage to edit the annotations for this image
     return render_template('edit_image.html', image=image, annotations=annotations, categories=categories,
-                           categories_names=', '.join([c['name'] for c in categories]))
+                           categories_names=render_categories_names(categories))
 
 @app.route('/edit_task/')
 def edit_task():
@@ -116,7 +124,7 @@ def edit_task():
     task_id=1,
     image_ids=image_ids,
     categories=categories,
-    categories_names=', '.join([c['name'] for c in categories])
+    categories_names=render_categories_names(categories)
   )
 
 @app.route('/annotations/save', methods=['POST'])
@@ -185,7 +193,7 @@ def bbox_task(task_id):
     categories=categories,
     mturk=True,
     task_instructions=task_instructions,
-    categories_names=', '.join([c['name'] for c in categories])
+    categories_names=render_categories_names(categories)
   )
 
 @app.route('/bbox_task/save', methods=['POST'])

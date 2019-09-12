@@ -77,6 +77,49 @@ def ensure_dataset_indices(db):
   db.annotation.create_index("image_id")
   db.license.create_index("id", unique=True)
 
+
+def update_dataset(db, dataset):
+  """ Update a COCO style dataset.
+  Args:
+    db: A mongodb database handle.
+    dataset: A COCO style dataset.
+    normalize: Should the annotations be normalized by the width and height stored with the images?
+  """
+
+  print("Updating Dataset")
+
+  # Insert the categories
+  assert 'categories' in dataset, "Failed to find `categories` in dataset object."
+  categories = dataset['categories']
+  print("Updating %d categories" % (len(categories),))
+  if len(categories) > 0:
+
+    db.drop_collection('category')
+    db.category.create_index("id", unique=True)
+    # Ensure that the category ids are strings
+    for cat in categories:
+      cat['id'] = str(cat['id'])
+
+      # Add specific colors to the keypoints
+      if 'keypoints' in cat and 'keypoints_style' not in cat:
+        print("\tWARNING: Adding keypoint styles to category: %s" % (cat['name'],))
+        keypoints_style = []
+        for k in range(len(cat['keypoints'])):
+          keypoints_style.append(COLOR_LIST[k % len(COLOR_LIST)])
+        cat['keypoints_style'] = keypoints_style
+
+    try:
+      response = db.category.insert_many(categories, ordered=False)
+      print("Successfully inserted %d categories" % (len(response.inserted_ids),))
+    except BulkWriteError as bwe:
+      panic = list(filter(lambda x: x['code'] != DUPLICATE_KEY_ERROR_CODE, bwe.details['writeErrors']))
+      if len(panic) > 0:
+        raise
+      print("Attempted to insert duplicate categories, %d new categories inserted" % (bwe.details['nInserted'],))
+
+
+
+
 def load_dataset(db, dataset, normalize=False):
   """ Load a COCO style dataset.
   Args:
@@ -244,7 +287,7 @@ def parse_args():
 
   parser = argparse.ArgumentParser(description='Dataset loading and exporting utilities.')
 
-  parser.add_argument('-a', '--action', choices=['drop', 'load', 'export'], dest='action',
+  parser.add_argument('-a', '--action', choices=['drop', 'load', 'update', 'export'], dest='action',
                       help='The action you would like to perform.', required=True)
 
   parser.add_argument('-d', '--dataset', dest='dataset_path',
@@ -279,6 +322,10 @@ def main():
       dataset = json.load(f)
     ensure_dataset_indices(db)
     load_dataset(db, dataset, normalize=args.normalize)
+  elif action == 'update':
+    with open(args.dataset_path) as f:
+      dataset = json.load(f)
+    update_dataset(db, dataset)
   elif action == 'export':
     dataset = export_dataset(db, denormalize=args.denormalize)
     with open(args.output_path, 'w') as f:
