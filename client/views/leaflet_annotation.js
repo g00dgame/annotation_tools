@@ -153,10 +153,10 @@ export class LeafletAnnotation extends React.Component {
         duration: 0
       });
       leafletMap.setMaxBounds(bounds);
-
+        
       // Render the image on the map
       let image = L.imageOverlay(this.props.imageElement.src, bounds).addTo(leafletMap);
-
+        
       // Add the feature group that will hold the annotations
       // All layers added to this feature group will be editable
       this.annotationFeatures = new L.FeatureGroup().addTo(leafletMap);
@@ -279,7 +279,6 @@ export class LeafletAnnotation extends React.Component {
      * @param {*} annotationIndex
      */
     addAnnotation(annotation, annotationIndex) {
-
       let imageWidth = this.imageWidth;
       let imageHeight = this.imageHeight;
 
@@ -297,7 +296,6 @@ export class LeafletAnnotation extends React.Component {
 
       // Add the bounding box
       if(annotation.bbox != 'undefined' && annotation.bbox != null){
-
         let color = COLORS[annotationIndex % COLORS.length];
         let pathStyle = this.createBBoxPathStyle(color)
 
@@ -311,7 +309,6 @@ export class LeafletAnnotation extends React.Component {
 
         this.addLayer(layer);
         layers.bbox = layer;
-
       }
 
       // Add the keypoints
@@ -327,8 +324,7 @@ export class LeafletAnnotation extends React.Component {
         }
 
         // Render a marker for each keypoint
-        for( var i = 0; i < annotation.keypoints.length / 3; i++){
-
+        for(var i = 0; i < annotation.keypoints.length / 3; i++){
           let keypoint_name = keypoint_names[i];
           let keypoint_color = keypoint_styles[i];
 
@@ -360,17 +356,64 @@ export class LeafletAnnotation extends React.Component {
               direction : 'auto'
             });
             this.addLayer(layer);
-
           }
 
           layers['keypoints'].push(layer);
-
         }
 
+        // Add polyline to map
+        let skeleton = category.skeleton;
+        let intermediate = {};
+        for (let i = 0; i < skeleton.length; i++) {
+          let dots = skeleton[i];
+          let x1, y1, v1;
+          let x2, y2, v2;
+
+          if (dots[0] === 17){
+            x1 = intermediate.x;
+            y1 = intermediate.y;
+            v1 = intermediate.v;
+          } else {
+            // Start line coordinate
+            x1 = annotation.keypoints[dots[0] * 3];
+            y1 = annotation.keypoints[(dots[0] * 3) + 1];
+            v1 = annotation.keypoints[(dots[0] * 3) + 2];
+          }
+
+          if (dots[1] === 17){
+            x2 = intermediate.x;
+            y2 = intermediate.y;
+            v2 = intermediate.v;
+          } else {
+            // End line coordinate
+            x2 = annotation.keypoints[dots[1] * 3];
+            y2 = annotation.keypoints[(dots[1] * 3) + 1];
+            v2 = annotation.keypoints[(dots[1] * 3) + 2];
+          }
+
+          if (v1 > 0 && v2 > 0) {
+            if ((dots[0] === 5 && dots[1] === 6) || (dots[0] === 6 && dots[1] === 5)) {
+              intermediate.x = (x1 + x2) / 2;
+              intermediate.y = (y1 + y2) / 2;
+              intermediate.v = 2;
+            }
+
+            x1 = x1 * imageWidth;
+            y1 = y1 * imageHeight;
+            x2 = x2 * imageWidth;
+            y2 = y2 * imageHeight;
+
+            let latlng = [
+              this.leafletMap.unproject([x1, y1], 0),
+              this.leafletMap.unproject([x2, y2], 0)
+            ]
+
+            L.polyline(latlng, {color: 'rgb(' + category.skeleton_color[i] + ')'}).addTo(this.leafletMap);
+          }
+        }
       }
 
       return layers;
-
     }
 
     /**
