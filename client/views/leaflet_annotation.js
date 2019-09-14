@@ -324,7 +324,7 @@ export class LeafletAnnotation extends React.Component {
         }
 
         // Render a marker for each keypoint
-        for(var i = 0; i < annotation.keypoints.length / 3; i++){
+        for(var i = 0; i < annotation.keypoints.length / 3; i++) {
           let keypoint_name = keypoint_names[i];
           let keypoint_color = keypoint_styles[i];
 
@@ -361,7 +361,7 @@ export class LeafletAnnotation extends React.Component {
           layers['keypoints'].push(layer);
         }
 
-        // Add polyline to map
+        // Add polyline and render to map
         let skeleton = category.skeleton;
         let intermediate = {};
         for (let i = 0; i < skeleton.length; i++) {
@@ -411,6 +411,7 @@ export class LeafletAnnotation extends React.Component {
             L.polyline(latlng, {color: 'rgb(' + category.skeleton_color[i] + ')'}).addTo(this.leafletMap);
           }
         }
+        // The end of render polyline
       }
 
       return layers;
