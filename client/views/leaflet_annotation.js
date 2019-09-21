@@ -172,7 +172,6 @@ export class LeafletAnnotation extends React.Component {
       leafletMap.on('draw:editmove', this._layerMoved, this);
       leafletMap.on('draw:editresize', this._layerResized, this);
 
-
       // We'll use this list to mirror the json annotations
       this.annotation_layers = [];
       // Add the annotations
@@ -362,56 +361,58 @@ export class LeafletAnnotation extends React.Component {
         }
 
         // Add polyline and render to map
-        let skeleton = category.skeleton;
-        let intermediate = {};
-        for (let i = 0; i < skeleton.length; i++) {
-          let dots = skeleton[i];
-          let x1, y1, v1;
-          let x2, y2, v2;
-
-          if (dots[0] === 17){
-            x1 = intermediate.x;
-            y1 = intermediate.y;
-            v1 = intermediate.v;
-          } else {
-            // Start line coordinate
-            x1 = annotation.keypoints[dots[0] * 3];
-            y1 = annotation.keypoints[(dots[0] * 3) + 1];
-            v1 = annotation.keypoints[(dots[0] * 3) + 2];
-          }
-
-          if (dots[1] === 17){
-            x2 = intermediate.x;
-            y2 = intermediate.y;
-            v2 = intermediate.v;
-          } else {
-            // End line coordinate
-            x2 = annotation.keypoints[dots[1] * 3];
-            y2 = annotation.keypoints[(dots[1] * 3) + 1];
-            v2 = annotation.keypoints[(dots[1] * 3) + 2];
-          }
-
-          if (v1 > 0 && v2 > 0) {
-            if ((dots[0] === 5 && dots[1] === 6) || (dots[0] === 6 && dots[1] === 5)) {
-              intermediate.x = (x1 + x2) / 2;
-              intermediate.y = (y1 + y2) / 2;
-              intermediate.v = 2;
+        if (category.skeleton != 'undefined' && category.skeleton != null) {
+          let skeleton = category.skeleton;
+          let intermediate = {};
+          for (let i = 0; i < skeleton.length; i++) {
+            let dots = skeleton[i];
+            let x1, y1, v1;
+            let x2, y2, v2;
+  
+            if (dots[0] === 17){
+              x1 = intermediate.x;
+              y1 = intermediate.y;
+              v1 = intermediate.v;
+            } else {
+              // Start line coordinate
+              x1 = annotation.keypoints[dots[0] * 3];
+              y1 = annotation.keypoints[(dots[0] * 3) + 1];
+              v1 = annotation.keypoints[(dots[0] * 3) + 2];
             }
-
-            x1 = x1 * imageWidth;
-            y1 = y1 * imageHeight;
-            x2 = x2 * imageWidth;
-            y2 = y2 * imageHeight;
-
-            let latlng = [
-              this.leafletMap.unproject([x1, y1], 0),
-              this.leafletMap.unproject([x2, y2], 0)
-            ]
-
-            L.polyline(latlng, {color: 'rgb(' + category.skeleton_color[i] + ')'}).addTo(this.leafletMap);
+  
+            if (dots[1] === 17){
+              x2 = intermediate.x;
+              y2 = intermediate.y;
+              v2 = intermediate.v;
+            } else {
+              // End line coordinate
+              x2 = annotation.keypoints[dots[1] * 3];
+              y2 = annotation.keypoints[(dots[1] * 3) + 1];
+              v2 = annotation.keypoints[(dots[1] * 3) + 2];
+            }
+  
+            if (v1 > 0 && v2 > 0) {
+              if ((dots[0] === 5 && dots[1] === 6) || (dots[0] === 6 && dots[1] === 5)) {
+                intermediate.x = (x1 + x2) / 2;
+                intermediate.y = (y1 + y2) / 2;
+                intermediate.v = 2;
+              }
+  
+              x1 = x1 * imageWidth;
+              y1 = y1 * imageHeight;
+              x2 = x2 * imageWidth;
+              y2 = y2 * imageHeight;
+  
+              let latlng = [
+                this.leafletMap.unproject([x1, y1], 0),
+                this.leafletMap.unproject([x2, y2], 0)
+              ]
+  
+              L.polyline(latlng, {color: 'rgb(' + category.skeleton_color[i] + ')'}).addTo(this.leafletMap);
+            }
           }
+          // The end of render polyline
         }
-        // The end of render polyline
       }
 
       return layers;
@@ -464,7 +465,6 @@ export class LeafletAnnotation extends React.Component {
       this._currentDrawer = drawer;
       this._drawSuccessfullyCreated = false;
       drawer.enable();
-
     }
 
     /**
@@ -499,6 +499,13 @@ export class LeafletAnnotation extends React.Component {
     _drawStartEvent(e){
       console.log("draw start");
 
+      // Stop double click at the first marker
+      this.leafletMap.on('click', doSomething);
+      var doSomething = function(map) {
+        // stop propagation
+        map.originalEvent.preventDefault();
+      };
+
       if(this.annotating_bbox){
 
         // If the user clicks on the image (rather than clicking and dragging) then this
@@ -520,7 +527,6 @@ export class LeafletAnnotation extends React.Component {
           $(this.leafletHolderEl).append(ch_horizontal);
           $(this.leafletHolderEl).append(ch_vertical);
           $(this.leafletHolderEl).on('mousemove', this.bboxCursorUpdate);
-
         }
       }
     }
@@ -536,8 +542,7 @@ export class LeafletAnnotation extends React.Component {
       // The user triggered some click, but didn't successfully create the annotation.
       if(this.state.annotating && !this._drawSuccessfullyCreated){
 				this._currentDrawer.enable();
-      }
-      else{
+      } else {
         // Always turn off the mouse move
         $(this.leafletHolderEl).off('mousemove', this.bboxCursorUpdate);
         if(this.bbox_crosshairs != null){
@@ -548,7 +553,6 @@ export class LeafletAnnotation extends React.Component {
           this.bbox_crosshairs = null;
         }
       }
-
     }
 
     /**
@@ -563,7 +567,6 @@ export class LeafletAnnotation extends React.Component {
       this._drawSuccessfullyCreated = true;
 
       var layer = e.layer;
-
 
       // Were we annotating a keypoint?
       if(this.annotating_keypoint){
@@ -651,7 +654,7 @@ export class LeafletAnnotation extends React.Component {
           var annotations = prevState.annotations;
           annotations.push(annotation);
           return {
-            'annnotations' : annotations
+            'annotations' : annotations
           };
         });
 

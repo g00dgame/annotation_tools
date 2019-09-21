@@ -481,7 +481,7 @@ export class BBoxAnnotation extends React.Component {
             var annotations = prevState.annotations;
             annotations.push(annotation);
             return {
-              'annnotations' : annotations
+              'annotations' : annotations
             };
           });
         }
