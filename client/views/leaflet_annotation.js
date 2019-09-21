@@ -500,8 +500,8 @@ export class LeafletAnnotation extends React.Component {
       console.log("draw start");
 
       // Stop double click at the first marker
-      this.leafletMap.on('click', doSomething);
-      var doSomething = function(map) {
+      this.leafletMap.on('click', cancelPrevious);
+      let cancelPrevious = function(map) {
         // stop propagation
         map.originalEvent.preventDefault();
       };
