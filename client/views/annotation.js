@@ -13,6 +13,7 @@ export class Annotation extends React.Component {
 
       this.keypointVisibilityChanged = this.keypointVisibilityChanged.bind(this);
       this.changeCatRequested = this.changeCatRequested.bind(this);
+      this.onCheckBoxChange = this.onCheckBoxChange.bind(this);
       this.deleteRequested = this.deleteRequested.bind(this);
       this.onMouseEnter = this.onMouseEnter.bind(this);
       this.onMouseLeave = this.onMouseLeave.bind(this);
@@ -43,6 +44,12 @@ export class Annotation extends React.Component {
 
   }
 
+  onCheckBoxChange(event){
+    const target = event.target;
+    const value = target.checked;
+    this.props.checkBoxChange(value, this.props.id);
+  }
+
   onFocus(){
     this.props.handleFocus(this.props.id);
   }
@@ -54,8 +61,6 @@ export class Annotation extends React.Component {
   onHideOthers(){
     this.props.handleHideOthers(this.props.id);
   }
-
-
 
   render(){
     var num_na_keypoints = 0;
@@ -81,10 +86,9 @@ export class Annotation extends React.Component {
     let annotation_color = COLORS[this.props.id % COLORS.length];
 
     var na_keypoints_badge;
-    if(num_na_keypoints > 0){
+    if(num_na_keypoints > 0) {
       na_keypoints_badge = (<span className="badge badge-warning">{num_na_keypoints} Н/Д</span>)
-    }
-    else{
+    } else {
       na_keypoints_badge = (<span className="badge badge-success">{num_na_keypoints} Н/Д</span>)
     }
 
@@ -105,6 +109,10 @@ export class Annotation extends React.Component {
               href={"#annotationBody" + this.props.id} style={{cursor : "pointer"}}>
               <span className="badge px-2 mr-1" style={{backgroundColor: annotation_color}}></span>
               <span>{this.props.category.name}</span>
+            </div>
+            <div className="hard-situation">
+              hard
+              <input type="checkbox" checked={this.props.is_hard} onChange={this.onCheckBoxChange} />
             </div>
             <div className="p-2">
               {na_keypoints_badge}

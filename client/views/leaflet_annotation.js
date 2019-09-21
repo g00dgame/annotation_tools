@@ -94,6 +94,7 @@ export class LeafletAnnotation extends React.Component {
         this.handleAnnotationChangeCat = this.handleAnnotationChangeCat.bind(this);
         this.handleSave = this.handleSave.bind(this);
         this.checkKeypointAnnotationQueue = this.checkKeypointAnnotationQueue.bind(this);
+        this.checkBoxChange = this.checkBoxChange.bind(this);
         this.handleAnnotationFocus = this.handleAnnotationFocus.bind(this);
         this.handleAnnotateKeypoints = this.handleAnnotateKeypoints.bind(this);
         this.hideOtherAnnotations = this.hideOtherAnnotations.bind(this);
@@ -111,7 +112,6 @@ export class LeafletAnnotation extends React.Component {
 
     // Add the image overlay and render the annotations.
     componentDidMount() {
-
       // Create the leaflet map
       this.leafletMap = L.map(this.leafletHolderEl, {
         center : [0, 0],
@@ -272,6 +272,62 @@ export class LeafletAnnotation extends React.Component {
       return "repeating-linear-gradient(   45deg,   " + color + ",   " + color + " 2px,   black 2px,   black 4px )";
     }
 
+    addSkeleton(category, annotation) {
+      // Add polyline and render to map
+      if (category.skeleton != 'undefined' && category.skeleton != null) {
+        let skeleton = category.skeleton;
+        let intermediate = {};
+        for (let i = 0; i < skeleton.length; i++) {
+          let dots = skeleton[i];
+          let x1, y1, v1;
+          let x2, y2, v2;
+
+          if (dots[0] === 17){
+            x1 = intermediate.x;
+            y1 = intermediate.y;
+            v1 = intermediate.v;
+          } else {
+            // Start line coordinate
+            x1 = annotation.keypoints[dots[0] * 3];
+            y1 = annotation.keypoints[(dots[0] * 3) + 1];
+            v1 = annotation.keypoints[(dots[0] * 3) + 2];
+          }
+
+          if (dots[1] === 17){
+            x2 = intermediate.x;
+            y2 = intermediate.y;
+            v2 = intermediate.v;
+          } else {
+            // End line coordinate
+            x2 = annotation.keypoints[dots[1] * 3];
+            y2 = annotation.keypoints[(dots[1] * 3) + 1];
+            v2 = annotation.keypoints[(dots[1] * 3) + 2];
+          }
+
+          if (v1 > 0 && v2 > 0) {
+            if ((dots[0] === 5 && dots[1] === 6) || (dots[0] === 6 && dots[1] === 5)) {
+              intermediate.x = (x1 + x2) / 2;
+              intermediate.y = (y1 + y2) / 2;
+              intermediate.v = 2;
+            }
+
+            x1 = x1 * this.imageWidth;
+            y1 = y1 * this.imageHeight;
+            x2 = x2 * this.imageWidth;
+            y2 = y2 * this.imageHeight;
+
+            let latlng = [
+              this.leafletMap.unproject([x1, y1], 0),
+              this.leafletMap.unproject([x2, y2], 0)
+            ]
+
+            L.polyline(latlng, {color: 'rgb(' + category.skeleton_color[i] + ')'}).addTo(this.leafletMap);
+          }
+        }
+        // The end of render polyline
+      }
+    }
+
     /**
      * Add an annotation to the image. This will render the bbox and keypoint annotations.
      * @param {*} annotation
@@ -359,62 +415,8 @@ export class LeafletAnnotation extends React.Component {
 
           layers['keypoints'].push(layer);
         }
-
-        // Add polyline and render to map
-        if (category.skeleton != 'undefined' && category.skeleton != null) {
-          let skeleton = category.skeleton;
-          let intermediate = {};
-          for (let i = 0; i < skeleton.length; i++) {
-            let dots = skeleton[i];
-            let x1, y1, v1;
-            let x2, y2, v2;
-  
-            if (dots[0] === 17){
-              x1 = intermediate.x;
-              y1 = intermediate.y;
-              v1 = intermediate.v;
-            } else {
-              // Start line coordinate
-              x1 = annotation.keypoints[dots[0] * 3];
-              y1 = annotation.keypoints[(dots[0] * 3) + 1];
-              v1 = annotation.keypoints[(dots[0] * 3) + 2];
-            }
-  
-            if (dots[1] === 17){
-              x2 = intermediate.x;
-              y2 = intermediate.y;
-              v2 = intermediate.v;
-            } else {
-              // End line coordinate
-              x2 = annotation.keypoints[dots[1] * 3];
-              y2 = annotation.keypoints[(dots[1] * 3) + 1];
-              v2 = annotation.keypoints[(dots[1] * 3) + 2];
-            }
-  
-            if (v1 > 0 && v2 > 0) {
-              if ((dots[0] === 5 && dots[1] === 6) || (dots[0] === 6 && dots[1] === 5)) {
-                intermediate.x = (x1 + x2) / 2;
-                intermediate.y = (y1 + y2) / 2;
-                intermediate.v = 2;
-              }
-  
-              x1 = x1 * imageWidth;
-              y1 = y1 * imageHeight;
-              x2 = x2 * imageWidth;
-              y2 = y2 * imageHeight;
-  
-              let latlng = [
-                this.leafletMap.unproject([x1, y1], 0),
-                this.leafletMap.unproject([x2, y2], 0)
-              ]
-  
-              L.polyline(latlng, {color: 'rgb(' + category.skeleton_color[i] + ')'}).addTo(this.leafletMap);
-            }
-          }
-          // The end of render polyline
-        }
+        this.addSkeleton(category, annotation);
       }
-
       return layers;
     }
 
@@ -627,7 +629,8 @@ export class LeafletAnnotation extends React.Component {
           'image_id': this.props.image.id,
           'category_id': category.id,
           'bbox' : null,
-          'keypoints' : keypoints
+          'keypoints' : keypoints,
+          'is_hard': false
         };
 
         // Create a mirror to hold the annotation layers
@@ -657,7 +660,6 @@ export class LeafletAnnotation extends React.Component {
             'annotations' : annotations
           };
         });
-
       }
 
       // Unset all of the annotation properties
@@ -725,12 +727,9 @@ export class LeafletAnnotation extends React.Component {
           // Are we currently annotating this keypoint?
           if (this.current_annotationIndex == annotationIndex && this.annotating_keypoint && this.current_keypointIndex == keypointIndex){
             // cancel the drawer
-
             this.cancelKeypointAnnotation()
-
           }
-        }
-        else{
+        } else {
           // was this keypoint visible?
           if (prev_visibility > 0){
             // remove the keypoint layer
@@ -748,7 +747,6 @@ export class LeafletAnnotation extends React.Component {
       }
 
       else if (visibility == 1 || visibility == 2){
-
         // Are we currently annotating this keypoing (and just toggled the visibility)
         if (this.state.annotating){
           // Are we currently annotating this keypoint?
@@ -775,9 +773,7 @@ export class LeafletAnnotation extends React.Component {
               };
             });
           }
-        }
-        else{
-
+        } else {
           // Does a layer exist for this keypoint?
           var keypoint_layer = this.annotation_layers[annotationIndex]['keypoints'][keypointIndex];
           if(keypoint_layer != null){
@@ -854,7 +850,6 @@ export class LeafletAnnotation extends React.Component {
      * Cancel a keypoint annotation, setting the visibility to 0.
      */
     cancelKeypointAnnotation(){
-
       // cancel the drawer
       this._drawSuccessfullyCreated = true;
       this._currentDrawer.disable();
@@ -877,7 +872,6 @@ export class LeafletAnnotation extends React.Component {
       }, this.checkKeypointAnnotationQueue.bind(this)); // Check the queue to see if there is another keypoint
 
     }
-
 
     categorySelection(category_idx){
       $('#categorySelectionModal').modal('hide');
@@ -921,9 +915,7 @@ export class LeafletAnnotation extends React.Component {
       // if there is only one category, then this is real easy.
       if (this.props.categories.length == 1){
         this.addNewInstance(0);
-      }
-      else{
-
+      } else {
         // Show a modal window and let the user select the category.
         ReactDOM.render(
           <CategorySelectionModal ref={(el) => {this.categorySelectionModalEl = el; }} categories={this.props.categories} cancelled={this.categorySelectionCancelled}
@@ -1270,10 +1262,20 @@ export class LeafletAnnotation extends React.Component {
      * corresponding layer.
      */
     handleSave(){
-
       //this.props.onSave(annotations_to_save);
       this.props.onSave(()=>{}, ()=>{});
+    }
 
+    /**
+     * Set true or false if annotation situation is hard
+     * @param {*} is_hard 
+     */
+    checkBoxChange(is_hard, id){
+      let annotations = this.props.annotations;
+      annotations[id].is_hard = is_hard;
+      this.setState({
+        'annotations': annotations
+      });
     }
 
     /**
@@ -1441,7 +1443,6 @@ export class LeafletAnnotation extends React.Component {
      * Show all annotations.
      */
     showAllAnnotations(){
-
       for(var i = 0; i < this.state.annotations.length; i++){
 
         let annotation = this.state.annotations[i];
@@ -1461,7 +1462,6 @@ export class LeafletAnnotation extends React.Component {
     }
 
     render() {
-
         let image_id = this.props.image.id;
         let rights_holder = this.props.image.rights_holder;
 
@@ -1506,17 +1506,19 @@ export class LeafletAnnotation extends React.Component {
 
           var keypoint_els = [];
           annotation_els.push((
-            <Annotation key={i.toString()}
-                        id={i}
-                        category={category}
-                        keypoints={annotation.keypoints ? annotation.keypoints : []}
+            <Annotation key={ i.toString() }
+                        id={ i }
+                        category={ category }
+                        keypoints={ annotation.keypoints ? annotation.keypoints : [] }
+                        is_hard={ annotation.is_hard }
+                        checkBoxChange={ this.checkBoxChange }
                         handleKeypointVisibilityChange={ this.handleKeypointVisibilityChange }
                         handleDelete={ this.handleAnnotationDelete }
                         handleChangeCat={ this.handleAnnotationChangeCat }
-                        handleFocus={this.handleAnnotationFocus}
-                        handleAnnotateKeypoints={this.handleAnnotateKeypoints}
-                        handleHideOthers={this.hideOtherAnnotations}
-                        hidden={hidden}/>
+                        handleFocus={ this.handleAnnotationFocus }
+                        handleAnnotateKeypoints={ this.handleAnnotateKeypoints }
+                        handleHideOthers={ this.hideOtherAnnotations }
+                        hidden={ hidden }/>
           ));
         }
 
