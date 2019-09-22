@@ -111,7 +111,7 @@ export class Annotation extends React.Component {
               <span>{this.props.category.name}</span>
             </div>
             <div className="hard-situation">
-              hard
+              hard&nbsp;
               <input type="checkbox" checked={this.props.is_hard} onChange={this.onCheckBoxChange} />
             </div>
             <div className="p-2">
