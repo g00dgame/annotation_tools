@@ -415,7 +415,7 @@ export class LeafletAnnotation extends React.Component {
 
           layers['keypoints'].push(layer);
         }
-        this.addSkeleton(category, annotation);
+        // this.addSkeleton(category, annotation);  // Crap: Disable feature for a while
       }
       return layers;
     }
