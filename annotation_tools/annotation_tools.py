@@ -10,7 +10,10 @@ import json
 import os
 import random
 
-from flask import Flask, render_template, jsonify, request
+import flask_login
+from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user
+from flask import Flask, render_template, jsonify
+from flask import Response, redirect, url_for, request, session, abort
 from flask_pymongo import PyMongo
 from bson import json_util
 
@@ -31,9 +34,87 @@ def get_db():
     db = mongo.db
     return db
 
+# config
+app.config.update(
+    SECRET_KEY = 'secret_xxx'
+)
+
+# flask-login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
+
+# silly user model
+class User(UserMixin):
+  def __init__(self, id):
+    self.id = id
+    self.name = 'admin'
+    self.password = 'admin'
+    self.is_admin = True
+    if 'user' in mongo.db.collection_names():
+      db_user = mongo.db.user.find_one({'username': id})
+      self.name = db_user['username']
+      self.password = db_user['password']
+      self.is_admin = db_user['is_admin']
+
+  def __repr__(self):
+    return "%d/%s/%s" % (self.id, self.name, self.password)
+
+
+# somewhere to login
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == 'POST':
+        if 'user' not in mongo.db.collection_names():
+            user = User('admin')
+            login_user(user)
+            return redirect(request.args.get("next"))
+
+        username = request.form['username']
+        password = request.form['password']
+        db_user = mongo.db.user.find_one({'username': username})
+        if db_user is not None and password == db_user['password']:
+            id = db_user['username']
+            user = User(id)
+            login_user(user)
+            return redirect(request.args.get("next"))
+        else:
+            return abort(401)
+    else:
+        return Response('''
+        <form action="" method="post">
+            <p><input type=text name=username>
+            <p><input type=password name=password>
+            <p><input type=submit value=Login>
+        </form>
+        ''')
+
+
+# callback to reload the user object
+@login_manager.user_loader
+def load_user(userid):
+  return User(userid)
+
+
+
+# somewhere to logout
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return Response('<p>Logged out</p>')
+
+
+# handle login failed
+@app.errorhandler(401)
+def page_not_found(e):
+    return Response('<p>Login failed</p>')
+
 ############### Dataset Utilities ###############
 
 @app.route('/')
+@login_required
 def home():
   return render_template('layout.html')
 
@@ -47,6 +128,7 @@ def render_categories_names(categories):
 
 
 @app.route('/edit_image/<image_id>')
+@login_required
 def edit_image(image_id):
   """ Edit a single image.
   """
@@ -77,6 +159,7 @@ def edit_image(image_id):
                            categories_names=render_categories_names(categories))
 
 @app.route('/edit_task/')
+@login_required
 def edit_task():
   """ Edit a group of images.
   """
@@ -128,6 +211,7 @@ def edit_task():
   )
 
 @app.route('/annotations/save', methods=['POST'])
+@login_required
 def save_annotations():
   """ Save the annotations. This will overwrite annotations.
   """
@@ -165,6 +249,7 @@ def save_annotations():
 ################## BBox Tasks ###################
 
 @app.route('/bbox_task/<task_id>')
+@login_required
 def bbox_task(task_id):
   """ Get the list of images for a bounding box task and return them along
   with the instructions for the task to the user.
@@ -197,6 +282,7 @@ def bbox_task(task_id):
   )
 
 @app.route('/bbox_task/save', methods=['POST'])
+@login_required
 def bbox_task_save():
   """ Save the results of a bounding box task.
   """
