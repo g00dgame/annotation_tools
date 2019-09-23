@@ -240,6 +240,10 @@ def save_annotations():
         # Upsert the new annotation so that we create it if its new, or replace it if (e.g) the
         # user hit the save button twice, so the _id field was never seen by the client.
         assert 'id' in annotation
+
+        # Crap: bug in client side, workaround in backend
+        if len(mongo.db.category.find_one({'id': annotation['category_id']})['keypoints']) == 0:
+          annotation['keypoints'] = []
         replace_result = mongo.db.annotation.replace_one({'id' : annotation['id']}, annotation, upsert=True)
         added_annotations_count += 1
 
