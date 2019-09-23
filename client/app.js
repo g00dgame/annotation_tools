@@ -1,6 +1,7 @@
 import {editImage} from './views/edit_image.js';
 import {editTask} from './views/edit_task.js';
 import {bboxTask} from './views/bbox_task.js';
+import {operationsView} from './views/operations.js';
 
 document.V = Object();
 
@@ -10,3 +11,4 @@ document.V.editTask = editTask;
 
 // Bounding box annotation task
 document.V.bboxTask = bboxTask;
+document.V.operationsView = operationsView;

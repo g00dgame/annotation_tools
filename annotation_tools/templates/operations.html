@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--- link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css" --->
+  <title>Operations</title>
+</head>
+<body>
+  <section class="section">
+    <div class="container">
+          <div id="operations_app"><!-- React --></div>
+    </div>
+  </section>
+  {% block scripts %}
+  <script type="text/javascript" src="{{ url_for('static', filename='app.bundle.js') }}"></script>
+  <script type="text/javascript">
+      document.V.operationsView();
+  </script>
+  {% endblock %}
+</body>
+</html>

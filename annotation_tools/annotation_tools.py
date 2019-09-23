@@ -158,6 +158,21 @@ def edit_image(image_id):
     return render_template('edit_image.html', image=image, annotations=annotations, categories=categories,
                            categories_names=render_categories_names(categories))
 
+
+@app.route('/operations/')
+@login_required
+def operations():
+  if flask_login.current_user.is_admin:
+    return render_template('operations.html')
+  else:
+    return abort(401)
+
+
+@app.route('/api/operations/')
+def api_operations():
+  return jsonify([])
+
+
 @app.route('/edit_task/')
 @login_required
 def edit_task():
