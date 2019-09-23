@@ -36,7 +36,7 @@ def get_db():
 
 # config
 app.config.update(
-    SECRET_KEY = 'secret_xxx'
+    SECRET_KEY='969e5db1fdff45d2bb232431331a93a0'
 )
 
 # flask-login
