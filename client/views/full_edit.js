@@ -38,7 +38,7 @@ export class FullEditView extends React.Component {
       $.ajax({
         url : "/annotations/save",
         method : 'POST',
-        data : JSON.stringify({'annotations' : imageData.annotations}),
+        data : JSON.stringify({'annotations' : imageData.annotations, 'image': imageData.image}),
         contentType: 'application/json'
       }).done(function(){
         console.log("saved annotations");

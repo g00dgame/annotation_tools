@@ -216,14 +216,21 @@ def save_annotations():
   """ Save the annotations. This will overwrite annotations.
   """
   annotations = json_util.loads(json.dumps(request.json['annotations']))
+  image = json_util.loads(json.dumps(request.json['image']))
+
+  deleted_annotations_count = 0
+  added_annotations_count = 0
+  modified_annotations_count = 0
 
   for annotation in annotations:
     # Is this an existing annotation?
     if '_id' in annotation:
       if 'deleted' in annotation and annotation['deleted']:
         mongo.db.annotation.delete_one({'_id' : annotation['_id']})
+        deleted_annotations_count += 1
       else:
-        result = mongo.db.annotation.replace_one({'_id' : annotation['_id']}, annotation)
+        replace_result = mongo.db.annotation.replace_one({'_id' : annotation['_id']}, annotation)
+        modified_annotations_count += replace_result.modified_count
     else:
       if 'deleted' in annotation and annotation['deleted']:
         pass # this annotation was created and then deleted.
@@ -233,7 +240,8 @@ def save_annotations():
         # Upsert the new annotation so that we create it if its new, or replace it if (e.g) the
         # user hit the save button twice, so the _id field was never seen by the client.
         assert 'id' in annotation
-        mongo.db.annotation.replace_one({'id' : annotation['id']}, annotation, upsert=True)
+        replace_result = mongo.db.annotation.replace_one({'id' : annotation['id']}, annotation, upsert=True)
+        added_annotations_count += 1
 
         # if 'id' not in annotation:
         #   insert_res = mongo.db.annotation.insert_one(annotation, bypass_document_validation=True)
@@ -241,6 +249,15 @@ def save_annotations():
         #   mongo.db.annotation.update_one({'_id' : anno_id}, {'$set' : {'id' : str(anno_id)}})
         # else:
         #   insert_res = mongo.db.insert_one(annotation)
+
+  operation_record = dict()
+  operation_record['user'] = flask_login.current_user.name
+  operation_record['image_id'] = image['id']
+  operation_record['time'] = datetime.datetime.now()
+  operation_record['bbox_deleted'] = deleted_annotations_count
+  operation_record['bbox_added'] = added_annotations_count
+  operation_record['bbox_modified'] = modified_annotations_count
+  mongo.db.operation.insert_one(operation_record)
 
   return ""
 
