@@ -11,7 +11,7 @@ import numpy as np
 from multiprocessing import Pool
 
 
-N = 4000
+N = 400
 PROCS = 40
 
 
@@ -26,20 +26,23 @@ def process(proc_id):
         elif len(objects) > 5:
             index = np.random.randint(len(objects))
             obj = objects[index]
-            db.test.delete_one({'id': obj['id']})
-            del objects[index]
+            if np.random.random() < 0.5:
+                db.test.delete_one({'id': obj['id']})
+                del objects[index]
+            else:
+                obj['data'] = np.random.random([50]).tolist()
+                db.test.replace_one({'id': obj['id']}, obj)
 
     return objects
 
 
 def main():
-    db = get_db()
-    db.drop_collection('test')
     p = Pool(PROCS)
     t1 = time.time()
     outputs = p.map(process, range(PROCS))
     t2 = time.time()
 
+    db = get_db()
     db_objects = db.test.find()
     print(N, t2 - t1)
     print(sum([len(o) for o in outputs]), db_objects.count())
@@ -48,6 +51,7 @@ def main():
     for obj in db_objects:
         db_ids.add(obj['id'])
     print(ids == db_ids)
+    db.drop_collection('test')
 
 
 if __name__ == '__main__':
