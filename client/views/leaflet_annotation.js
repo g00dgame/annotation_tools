@@ -100,6 +100,8 @@ export class LeafletAnnotation extends React.Component {
         this.hideOtherAnnotations = this.hideOtherAnnotations.bind(this);
         this.hideAllAnnotations = this.hideAllAnnotations.bind(this);
         this.showAllAnnotations = this.showAllAnnotations.bind(this);
+        this.hideAllSkeletons = this.hideAllSkeletons.bind(this);
+        this.showAllSkeletons = this.showAllSkeletons.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
 
         this.bboxCursorUpdate = this.bboxCursorUpdate.bind(this);
@@ -272,13 +274,15 @@ export class LeafletAnnotation extends React.Component {
       return "repeating-linear-gradient(   45deg,   " + color + ",   " + color + " 2px,   black 2px,   black 4px )";
     }
 
-    addSkeleton(category, annotation) {
+    addSkeleton(category, annotation, layers) {
+      layers['skeletons'] = [];
       // Add polyline and render to map
       if (category.skeleton != 'undefined' && category.skeleton != null) {
         let skeleton = category.skeleton;
         let intermediate = {};
         for (let i = 0; i < skeleton.length; i++) {
           let dots = skeleton[i];
+          let layer = null;
           let x1, y1, v1;
           let x2, y2, v2;
 
@@ -321,7 +325,8 @@ export class LeafletAnnotation extends React.Component {
               this.leafletMap.unproject([x2, y2], 0)
             ]
 
-            L.polyline(latlng, {color: 'rgb(' + category.skeleton_color[i] + ')'}).addTo(this.leafletMap);
+            layer = L.polyline(latlng, { color: 'rgb(' + category.skeleton_color[i] + ')' }).addTo(this.leafletMap);
+            layers['skeletons'].push(layer);
           }
         }
         // The end of render polyline
@@ -347,6 +352,7 @@ export class LeafletAnnotation extends React.Component {
       var layers = {
         'bbox' : null,
         'keypoints' : null,
+        'skeletons' : null
       };
 
       // Add the bounding box
@@ -415,7 +421,7 @@ export class LeafletAnnotation extends React.Component {
 
           layers['keypoints'].push(layer);
         }
-        // this.addSkeleton(category, annotation);  // Crap: Disable feature for a while
+        this.addSkeleton(category, annotation, layers);  // Crap: Disable feature for a while
       }
       return layers;
     }
@@ -424,7 +430,6 @@ export class LeafletAnnotation extends React.Component {
      * Allow the user to draw a bbox.
      */
     annotateBBox(){
-
       let index = this.state.annotations.length;
       let color = COLORS[index % COLORS.length];
       let pathStyle = this.createBBoxPathStyle(color);
@@ -448,7 +453,6 @@ export class LeafletAnnotation extends React.Component {
      * @param {*} keypoint_name
      */
     annotateKeypoint(keypoint_color, keypoint_name, visibility){
-
       var marker = new ColorableDivIcon({
         iconAnchor : [6, 6],
         popupAnchor : [0, -6],
@@ -600,7 +604,6 @@ export class LeafletAnnotation extends React.Component {
 
       }
       else if(this.annotating_bbox){
-
         // We want to clamp the box to the image bounds.
         layer = this.restrictBoxLayerToImage(layer);
         this.addLayer(layer);
@@ -936,8 +939,7 @@ export class LeafletAnnotation extends React.Component {
     /**
      * Cancel a bbox annotation.
      */
-    cancelBBoxAnnotation(){
-
+    cancelBBoxAnnotation() {
       this._drawSuccessfullyCreated = true;
       this._currentDrawer.disable();
       this._currentDrawer = null;
@@ -1036,7 +1038,6 @@ export class LeafletAnnotation extends React.Component {
      * @param {*} annotation_id
      */
     handleAnnotationDelete(annotation_id){
-
       // Need to check if we are annotating this instance
       if (this.state.annotating){
         if (this.current_annotationIndex == annotation_id){
@@ -1337,6 +1338,70 @@ export class LeafletAnnotation extends React.Component {
     }
 
     /**
+     * Hide one skeleton
+     * @param {*} annotation_layer 
+     */
+    hideSkeleton(annotation_layer) {
+      if (annotation_layer['skeletons'] != 'undefined' && annotation_layer['skeletons'] != null) {
+        let skeleton_layers = annotation_layer['skeletons'];
+        for(var j = 0; j < skeleton_layers.length; j++){
+            let layer = skeleton_layers[j];
+            this.leafletMap.removeLayer(layer);
+        }
+      }
+    }
+
+    /**
+     * Hide all skeletons
+     */
+    hideAllSkeletons() {
+      for(var i = 0; i < this.state.annotations.length; i++){
+        let annotation = this.state.annotations[i];
+        if (annotation.deleted != 'undefined' && annotation.deleted){
+          continue;
+        }
+        let annotation_layer = this.annotation_layers[i];
+        this.hideSkeleton(annotation_layer);
+      }
+
+      // Rerender
+      this.setState(this.state);
+    }
+
+    /**
+     * Show one skeleton
+     * @param {*} layer 
+     */
+    showSkeleton(annotation_layer) {
+      if (annotation_layer.bbox.editing._enabled == true && 
+      annotation_layer['skeletons'] != 'undefined' && annotation_layer['skeletons'] != null) {
+        let skeleton_layers = annotation_layer['skeletons'];
+        for(var j = 0; j < skeleton_layers.length; j++){
+            let layer = skeleton_layers[j];
+            this.leafletMap.addLayer(layer);
+        }
+      }
+    }
+
+    /**
+     * Show all skeletons
+     */
+    showAllSkeletons() {
+      for(var i = 0; i < this.state.annotations.length; i++){
+        let annotation = this.state.annotations[i];
+        if (annotation.deleted != 'undefined' && annotation.deleted){
+          continue;
+        }
+
+        let annotation_layer = this.annotation_layers[i];
+        this.showSkeleton(annotation_layer);
+
+      }
+      // Rerender
+      this.setState(this.state);
+    }
+
+    /**
      * Hide this annotation.
      * @param {*} annotation
      * @param {*} annotation_layer
@@ -1367,7 +1432,6 @@ export class LeafletAnnotation extends React.Component {
      * @param {*} annotationIndex
      */
     hideOtherAnnotations(annotationIndex){
-
       for(var i = 0; i < this.state.annotations.length; i++){
 
         let annotation = this.state.annotations[i];
@@ -1393,20 +1457,15 @@ export class LeafletAnnotation extends React.Component {
      * Hide all of the annotations.
      */
     hideAllAnnotations(){
-
       for(var i = 0; i < this.state.annotations.length; i++){
-
         let annotation = this.state.annotations[i];
         if (annotation.deleted != 'undefined' && annotation.deleted){
           continue;
         }
-
         let annotation_layer = this.annotation_layers[i];
-
         this.hideAnnotation(annotation, annotation_layer);
-
       }
-
+      this.hideAllSkeletons();
       // Rerender
       this.setState(this.state);
     }
@@ -1417,7 +1476,6 @@ export class LeafletAnnotation extends React.Component {
      * @param {*} annotation_layer
      */
     showAnnotation(annotation, annotation_layer){
-
       if(annotation_layer['bbox'] != 'undefined' && annotation_layer['bbox'] != null){
           let layer = annotation_layer['bbox'];
           this.addLayer(layer);
@@ -1436,7 +1494,6 @@ export class LeafletAnnotation extends React.Component {
           }
         }
       }
-
     }
 
     /**
@@ -1458,7 +1515,6 @@ export class LeafletAnnotation extends React.Component {
 
       // Rerender
       this.setState(this.state);
-
     }
 
     render() {
@@ -1545,10 +1601,17 @@ export class LeafletAnnotation extends React.Component {
                   <div className="p-2">
                     <button type="button" className="btn btn-outline-primary" onClick={this.createNewInstance}>Создать</button>
                   </div>
+                  <div className="p-2" align="center">
+                    <div className="btn-group" role="group" title="asdsad">
+                      <button type="button" className="btn btn-outline-danger" onClick={this.showAllSkeletons}>Включить</button>
+                      <button type="button" className="btn btn-outline-danger" onClick={this.hideAllSkeletons}>Отключить</button>
+                    </div>
+                    <small>Отрисовка скелета</small>
+                  </div>
                   <div className="p-2">
                     <div className="btn-group" role="group">
-                      <button type="button" className="btn btn-outline-secondary" onClick={this.hideAllAnnotations}>Скрыть все</button>
                       <button type="button" className="btn btn-outline-secondary" onClick={this.showAllAnnotations}>Показать все</button>
+                      <button type="button" className="btn btn-outline-secondary" onClick={this.hideAllAnnotations}>Скрыть все</button>
                     </div>
                   </div>
                   <div className="p-2">

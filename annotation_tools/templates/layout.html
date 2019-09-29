@@ -3,6 +3,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-4.0.0/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/checkbox.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 
   {% block head %}
@@ -13,7 +14,7 @@
 <body>
   {% block navbar %}
   <nav class="navbar navbar-light bg-faded">
-    <a class="navbar-brand" href="#">
+    <a class="navbar-brand" href="edit_task/?start=0&end=100">
       Visipedia Annotation Toolkit
     </a>
   </nav>

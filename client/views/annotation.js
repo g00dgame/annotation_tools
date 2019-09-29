@@ -109,10 +109,12 @@ export class Annotation extends React.Component {
               href={"#annotationBody" + this.props.id} style={{cursor : "pointer"}}>
               <span className="badge px-2 mr-1" style={{backgroundColor: annotation_color}}></span>
               <span>{this.props.category.name}</span>
-            </div>
-            <div className="hard-situation">
-              hard&nbsp;
-              <input type="checkbox" checked={this.props.is_hard} onChange={this.onCheckBoxChange} />
+            </div> 
+            <div className="p-2">
+              <div className="custom-control custom-checkbox">
+                <input type="checkbox" className="custom-control-input" id={this.props.id} checked={this.props.is_hard} onChange={this.onCheckBoxChange} />
+                <label className="custom-control-label" htmlFor={this.props.id}>hard</label>
+              </div>
             </div>
             <div className="p-2">
               {na_keypoints_badge}
