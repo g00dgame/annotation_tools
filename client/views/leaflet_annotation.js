@@ -274,6 +274,51 @@ export class LeafletAnnotation extends React.Component {
       return "repeating-linear-gradient(   45deg,   " + color + ",   " + color + " 2px,   black 2px,   black 4px )";
     }
 
+    // Add skeleton to map
+    updateSkeleton(category, layers) {
+      layers['skeletons'] = [];
+      let skeleton = category.skeleton;
+      let intermediate = {};
+      for (let i = 0; i < skeleton.length; i++) {
+        let dots = skeleton[i];
+        let layer = null;
+        let latlng;
+
+        let get_latlng = (index) => {
+          let x = intermediate.x;
+          let y = intermediate.y;
+          let inter_latlng = this.leafletMap.layerPointToLatLng([x, y]);
+          //let inter_latlng = this.leafletMap.unproject([x, y], 0);
+          return [
+            inter_latlng,
+            layers.keypoints[dots[index]]._latlng
+          ];
+        }
+
+        if ((dots[0] === 5 && dots[1] === 6) || (dots[0] === 6 && dots[1] === 5)) {
+          let m_first = this.leafletMap.latLngToLayerPoint(layers.keypoints[dots[0]]._latlng);
+          let m_second = this.leafletMap.latLngToLayerPoint(layers.keypoints[dots[1]]._latlng);
+          intermediate.x = (m_first.x + m_second.x) / 2;
+          intermediate.y = (m_first.y + m_second.y) / 2;
+        }
+        
+        if (dots[0] === 17) {
+          latlng = get_latlng(1);
+        } else if (dots[1] === 17) {
+          latlng = get_latlng(0);
+        } else {
+          latlng = [
+            layers.keypoints[dots[0]]._latlng,
+            layers.keypoints[dots[1]]._latlng
+          ]
+        }
+
+        layer = L.polyline(latlng, { color: category.skeleton_color[i] }).addTo(this.leafletMap);
+        layers['skeletons'].push(layer);
+      }
+    }
+
+    /* Old version for add polyline to map
     addSkeleton(category, annotation, layers) {
       layers['skeletons'] = [];
       // Add polyline and render to map
@@ -281,57 +326,55 @@ export class LeafletAnnotation extends React.Component {
         let skeleton = category.skeleton;
         let intermediate = {};
         for (let i = 0; i < skeleton.length; i++) {
+          let k_one = { x: null, y: null, v: null };
+          let k_two = { x: null, y: null, v: null };
           let dots = skeleton[i];
           let layer = null;
-          let x1, y1, v1;
-          let x2, y2, v2;
 
-          if (dots[0] === 17){
-            x1 = intermediate.x;
-            y1 = intermediate.y;
-            v1 = intermediate.v;
-          } else {
-            // Start line coordinate
-            x1 = annotation.keypoints[dots[0] * 3];
-            y1 = annotation.keypoints[(dots[0] * 3) + 1];
-            v1 = annotation.keypoints[(dots[0] * 3) + 2];
+          let get_inter = (keypoint, index) => {
+            if (dots[index] === 17) {
+              keypoint.x = intermediate.x;
+              keypoint.y = intermediate.y;
+              keypoint.v = intermediate.v;
+            } else {
+              // Start line coordinate
+              keypoint.x = annotation.keypoints[dots[index] * 3];
+              keypoint.y = annotation.keypoints[(dots[index] * 3) + 1];
+              keypoint.v = annotation.keypoints[(dots[index] * 3) + 2];
+            }
           }
 
-          if (dots[1] === 17){
-            x2 = intermediate.x;
-            y2 = intermediate.y;
-            v2 = intermediate.v;
-          } else {
-            // End line coordinate
-            x2 = annotation.keypoints[dots[1] * 3];
-            y2 = annotation.keypoints[(dots[1] * 3) + 1];
-            v2 = annotation.keypoints[(dots[1] * 3) + 2];
-          }
+          get_inter(k_one, 0);
+          get_inter(k_two, 1);
 
-          if (v1 > 0 && v2 > 0) {
+          if (k_one.v > 0 || k_two.v > 0) {
             if ((dots[0] === 5 && dots[1] === 6) || (dots[0] === 6 && dots[1] === 5)) {
-              intermediate.x = (x1 + x2) / 2;
-              intermediate.y = (y1 + y2) / 2;
+              intermediate.x = (k_one.x + k_two.x) / 2;
+              intermediate.y = (k_one.y + k_two.y) / 2;
               intermediate.v = 2;
             }
 
-            x1 = x1 * this.imageWidth;
-            y1 = y1 * this.imageHeight;
-            x2 = x2 * this.imageWidth;
-            y2 = y2 * this.imageHeight;
+            let prepare = (keypoint) => {
+              keypoint.x = keypoint.x * this.imageWidth;
+              keypoint.y = keypoint.y * this.imageHeight;
+            }
+
+            prepare(k_one);
+            prepare(k_two);
 
             let latlng = [
-              this.leafletMap.unproject([x1, y1], 0),
-              this.leafletMap.unproject([x2, y2], 0)
+              this.leafletMap.unproject([k_one.x, k_one.y], 0),
+              this.leafletMap.unproject([k_two.x, k_two.y], 0)
             ]
 
-            layer = L.polyline(latlng, { color: 'rgb(' + category.skeleton_color[i] + ')' }).addTo(this.leafletMap);
+            layer = L.polyline(latlng, { color: category.skeleton_color[i] }).addTo(this.leafletMap);
             layers['skeletons'].push(layer);
           }
         }
         // The end of render polyline
       }
     }
+    */
 
     /**
      * Add an annotation to the image. This will render the bbox and keypoint annotations.
@@ -411,7 +454,18 @@ export class LeafletAnnotation extends React.Component {
               marker.setBackground(this.createKeypointStripedBackgroundStyle(keypoint_color));
             }
 
-            layer = L.marker(latlng, {icon : marker});
+            let self = this;
+            layer = L.marker(latlng, {icon : marker})
+            .on('dragend', function(layer) {
+              self.hideAllSkeletons();
+              for (let i = 0; i < layers.keypoints.length; i++) {
+                if (layers.keypoints[i]._leaflet_id === layer.target._leaflet_id) {
+                  layers.keypoints[i] = layer.target;
+                  self.updateSkeleton(category, layers);
+                }
+              }
+            });
+            
             layer.bindTooltip(keypoint_name, {
               className : '',
               direction : 'auto'
@@ -421,7 +475,8 @@ export class LeafletAnnotation extends React.Component {
 
           layers['keypoints'].push(layer);
         }
-        this.addSkeleton(category, annotation, layers);  // Crap: Disable feature for a while
+        this.updateSkeleton(category, layers);
+        // this.addSkeleton(category, annotation, layers);  // Crap: Disable feature for a while
       }
       return layers;
     }
