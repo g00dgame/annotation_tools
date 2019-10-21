@@ -102,7 +102,9 @@ export class LeafletAnnotation extends React.Component {
         this.showAllAnnotations = this.showAllAnnotations.bind(this);
         this.hideAllSkeletons = this.hideAllSkeletons.bind(this);
         this.showAllSkeletons = this.showAllSkeletons.bind(this);
+        this.updateSkeleton = this.updateSkeleton.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.hideSkeleton = this.hideSkeleton.bind(this);
 
         this.bboxCursorUpdate = this.bboxCursorUpdate.bind(this);
 
@@ -456,17 +458,17 @@ export class LeafletAnnotation extends React.Component {
               marker.setBackground(this.createKeypointStripedBackgroundStyle(keypoint_color));
             }
 
-            let self = this;
-            layer = L.marker(latlng, {icon : marker})
-            .on('dragend', function(layer) {
-              self.hideAllSkeletons();
-              for (let i = 0; i < layers.keypoints.length; i++) {
-                if (layers.keypoints[i]._leaflet_id === layer.target._leaflet_id) {
-                  layers.keypoints[i] = layer.target;
-                  self.updateSkeleton(category, layers);
-                }
-              }
-            });
+            // let self = this;
+            layer = L.marker(latlng, {icon : marker});
+            // .on('dragend', function(layer) {
+            //   for (let i = 0; i < layers.keypoints.length; i++) {
+            //     if (layers.keypoints[i]._leaflet_id === layer.target._leaflet_id) {
+            //       layers.keypoints[i] = layer.target;
+            //       self.hideSkeleton(layers);
+            //       self.updateSkeleton(category, layers);
+            //     }
+            //   }
+            // });
             
             layer.bindTooltip(keypoint_name, {
               className : '',
@@ -615,6 +617,15 @@ export class LeafletAnnotation extends React.Component {
           $(ch_vertical).remove();
           this.bbox_crosshairs = null;
         }
+
+        let category;
+        let layers = this.annotation_layers[this.annotation_layers.length - 1];
+        for (let i = 0 ; i < this.props.categories.length; i++) {
+          if (this.props.categories[i].id === this.state.annotations[this.state.annotations.length - 1].category_id)
+            category = this.props.categories[i];
+        }
+
+        this.updateSkeleton(category, layers);
       }
     }
 
@@ -754,7 +765,26 @@ export class LeafletAnnotation extends React.Component {
 
     _layerMoved(e){
       //console.log("layer moved");
+      let layers;
+      let category;
+      let category_id;
 
+      for (let i = 0; i < this.annotation_layers.length; i++) {
+        for (let j = 0; j < this.annotation_layers[i].keypoints.length; j++) {
+          if (this.annotation_layers[i].keypoints[j]._leaflet_id === e.layer._leaflet_id) {
+            layers = this.annotation_layers[i];
+            category_id = this.state.annotations[i].category_id;
+          }
+        }
+      }
+
+      for (let i = 0; i < this.props.categories.length; i++) {
+        if (this.props.categories[i].id === category_id) {
+          category = this.props.categories[i];
+        }
+      }
+      this.hideSkeleton(layers);
+      this.updateSkeleton(category, layers);
     }
 
     _layerResized(e){
