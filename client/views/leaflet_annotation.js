@@ -426,6 +426,7 @@ export class LeafletAnnotation extends React.Component {
         // We should just assume that these exist...
         let keypoint_names = null;
         let keypoint_styles = null;
+        let check_keypoints = false;
         if(category != null){
           keypoint_names = category['keypoints'];
           keypoint_styles = category['keypoints_style'];
@@ -443,9 +444,9 @@ export class LeafletAnnotation extends React.Component {
 
           var layer = null;
           if (v > 0){
-
             x = x * imageWidth;
             y = y * imageHeight;
+            check_keypoints = true;
             let latlng = this.leafletMap.unproject([x,y], 0);
 
             var marker = new ColorableDivIcon({
@@ -479,7 +480,8 @@ export class LeafletAnnotation extends React.Component {
 
           layers['keypoints'].push(layer);
         }
-        this.updateSkeleton(category, layers);
+        if (check_keypoints === true)
+          this.updateSkeleton(category, layers);
         // this.addSkeleton(category, annotation, layers);  // Crap: Disable feature for a while
       }
       return layers;
@@ -771,7 +773,7 @@ export class LeafletAnnotation extends React.Component {
 
       for (let i = 0; i < this.annotation_layers.length; i++) {
         for (let j = 0; j < this.annotation_layers[i].keypoints.length; j++) {
-          if (this.annotation_layers[i].keypoints[j]._leaflet_id === e.layer._leaflet_id) {
+          if (this.annotation_layers[i].keypoints[j] !== null && this.annotation_layers[i].keypoints[j]._leaflet_id === e.layer._leaflet_id) {
             layers = this.annotation_layers[i];
             category_id = this.state.annotations[i].category_id;
           }
