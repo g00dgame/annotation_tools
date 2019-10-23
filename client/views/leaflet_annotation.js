@@ -279,45 +279,47 @@ export class LeafletAnnotation extends React.Component {
     // Add skeleton to map
     updateSkeleton(category, layers) {
       layers['skeletons'] = [];
+
       if (category.skeleton != 'undefined' && category.skeleton != null) {
         let skeleton = category.skeleton;
         let intermediate = {};
         for (let i = 0; i < skeleton.length; i++) {
           let dots = skeleton[i];
-          let layer = null;
-          let latlng;
+          if (layers.keypoints[i] !== null && layers.keypoints[dots[0]] !== null && layers.keypoints[dots[1]] !== null) {
+            let layer = null;
+            let latlng;
 
-          let get_latlng = (index) => {
-            let x = intermediate.x;
-            let y = intermediate.y;
-            let inter_latlng = this.leafletMap.layerPointToLatLng([x, y]);
-            //let inter_latlng = this.leafletMap.unproject([x, y], 0);
-            return [
-              inter_latlng,
-              layers.keypoints[dots[index]]._latlng
-            ];
-          }
+            let get_latlng = (index) => {
+              let x = intermediate.x;
+              let y = intermediate.y;
+              let inter_latlng = this.leafletMap.layerPointToLatLng([x, y]);
+              return [
+                inter_latlng,
+                layers.keypoints[dots[index]]._latlng
+              ];
+            }
 
-          if ((dots[0] === 5 && dots[1] === 6) || (dots[0] === 6 && dots[1] === 5)) {
-            let m_first = this.leafletMap.latLngToLayerPoint(layers.keypoints[dots[0]]._latlng);
-            let m_second = this.leafletMap.latLngToLayerPoint(layers.keypoints[dots[1]]._latlng);
-            intermediate.x = (m_first.x + m_second.x) / 2;
-            intermediate.y = (m_first.y + m_second.y) / 2;
-          }
-          
-          if (dots[0] === 17) {
-            latlng = get_latlng(1);
-          } else if (dots[1] === 17) {
-            latlng = get_latlng(0);
-          } else {
-            latlng = [
-              layers.keypoints[dots[0]]._latlng,
-              layers.keypoints[dots[1]]._latlng
-            ]
-          }
+            if ((dots[0] === 5 && dots[1] === 6) || (dots[0] === 6 && dots[1] === 5)) {
+                let m_first = this.leafletMap.latLngToLayerPoint(layers.keypoints[dots[0]]._latlng);
+                let m_second = this.leafletMap.latLngToLayerPoint(layers.keypoints[dots[1]]._latlng);
+                intermediate.x = (m_first.x + m_second.x) / 2;
+                intermediate.y = (m_first.y + m_second.y) / 2;
+            }
+            
+            if (dots[0] === 17) {
+              latlng = get_latlng(1);
+            } else if (dots[1] === 17) {
+              latlng = get_latlng(0);
+            } else {
+              latlng = [
+                layers.keypoints[dots[0]]._latlng,
+                layers.keypoints[dots[1]]._latlng
+              ]
+            }
 
-          layer = L.polyline(latlng, { color: category.skeleton_color[i] }).addTo(this.leafletMap);
-          layers['skeletons'].push(layer);
+            layer = L.polyline(latlng, { color: category.skeleton_color[i] }).addTo(this.leafletMap);
+            layers['skeletons'].push(layer);
+          }
         }
       }
     }
@@ -622,12 +624,15 @@ export class LeafletAnnotation extends React.Component {
 
         let category;
         let layers = this.annotation_layers[this.annotation_layers.length - 1];
-        for (let i = 0 ; i < this.props.categories.length; i++) {
-          if (this.props.categories[i].id === this.state.annotations[this.state.annotations.length - 1].category_id)
-            category = this.props.categories[i];
-        }
 
-        this.updateSkeleton(category, layers);
+        if (this.current_keypointIndex === null) {
+          for (let i = 0 ; i < this.props.categories.length; i++) {
+            if (this.props.categories[i].id === this.state.annotations[this.state.annotations.length - 1].category_id) {
+              category = this.props.categories[i];
+              this.updateSkeleton(category, layers);
+            }
+          }
+        }
       }
     }
 
@@ -776,17 +781,16 @@ export class LeafletAnnotation extends React.Component {
           if (this.annotation_layers[i].keypoints[j] !== null && this.annotation_layers[i].keypoints[j]._leaflet_id === e.layer._leaflet_id) {
             layers = this.annotation_layers[i];
             category_id = this.state.annotations[i].category_id;
+            for (let i = 0; i < this.props.categories.length; i++) {
+              if (this.props.categories[i].id === category_id) {
+                category = this.props.categories[i];
+              }
+            }
+            this.hideSkeleton(layers);
+            this.updateSkeleton(category, layers);
           }
         }
       }
-
-      for (let i = 0; i < this.props.categories.length; i++) {
-        if (this.props.categories[i].id === category_id) {
-          category = this.props.categories[i];
-        }
-      }
-      this.hideSkeleton(layers);
-      this.updateSkeleton(category, layers);
     }
 
     _layerResized(e){
