@@ -285,7 +285,7 @@ export class LeafletAnnotation extends React.Component {
         let intermediate = {};
         for (let i = 0; i < skeleton.length; i++) {
           let dots = skeleton[i];
-          if (layers.keypoints[i] !== null && layers.keypoints[dots[0]] !== null && layers.keypoints[dots[1]] !== null) {
+          if (layers.keypoints[dots[0]] !== null && layers.keypoints[dots[1]] !== null) {
             let layer = null;
             let latlng;
 
@@ -305,20 +305,31 @@ export class LeafletAnnotation extends React.Component {
                 intermediate.x = (m_first.x + m_second.x) / 2;
                 intermediate.y = (m_first.y + m_second.y) / 2;
             }
+
+            let getPolyline = () => {
+              layer = L.polyline(latlng, { color: category.skeleton_color[i] }).addTo(this.leafletMap);
+              layers['skeletons'].push(layer);
+            }
             
-            if (dots[0] === 17) {
-              latlng = get_latlng(1);
-            } else if (dots[1] === 17) {
-              latlng = get_latlng(0);
-            } else {
+            if (Object.keys(intermediate).length !== 0 && dots[0]) {
+              if (dots[0] === 17) {
+                latlng = get_latlng(1);
+              } else if (dots[1] === 17) {
+                latlng = get_latlng(0);
+              } else {
+                latlng = [
+                  layers.keypoints[dots[0]]._latlng,
+                  layers.keypoints[dots[1]]._latlng
+                ]
+              }
+              getPolyline();
+            } else if (dots[0] !== 17 && dots[1] !== 17) {
               latlng = [
                 layers.keypoints[dots[0]]._latlng,
                 layers.keypoints[dots[1]]._latlng
               ]
+              getPolyline();
             }
-
-            layer = L.polyline(latlng, { color: category.skeleton_color[i] }).addTo(this.leafletMap);
-            layers['skeletons'].push(layer);
           }
         }
       }
@@ -625,10 +636,10 @@ export class LeafletAnnotation extends React.Component {
         let category;
         let layers = this.annotation_layers[this.annotation_layers.length - 1];
 
-        if (this.current_keypointIndex === null) {
-          for (let i = 0 ; i < this.props.categories.length; i++) {
-            if (this.props.categories[i].id === this.state.annotations[this.state.annotations.length - 1].category_id) {
-              category = this.props.categories[i];
+        for (let i = 0 ; i < this.props.categories.length; i++) {
+          if (this.props.categories[i].id === this.state.annotations[this.state.annotations.length - 1].category_id) {
+            category = this.props.categories[i];
+            if (this.current_keypointIndex === null || this.current_keypointIndex === (category.keypoints.length - 1)) {
               this.updateSkeleton(category, layers);
             }
           }
