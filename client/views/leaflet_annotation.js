@@ -1168,10 +1168,11 @@ export class LeafletAnnotation extends React.Component {
 
       // Remove the keypoints.
       if(annotation_layer.keypoints != 'undefined' && annotation_layer.keypoints != null){
-        for( var i=0; i < annotation_layer.keypoints.length; i++){
+        for(var i = 0; i < annotation_layer.keypoints.length; i++){
           let layer = annotation_layer.keypoints[i];
           this.removeLayer(layer);
         }
+        this.hideSkeleton(annotation_layer);
       }
 
       this.setState(function(prevState, props){
